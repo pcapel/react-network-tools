@@ -1,0 +1,28 @@
+{
+  "name": "react-network-tools",
+  "version": "1.0.0",
+  "description": "Declarative data providers using socket.io and axios for react applications",
+  "main": "src/index.js",
+  "repository": "https://github.rackspace.com/phil9824/react-network-tools.git",
+  "author": "Philip Capel <Philip.Capel@rackspace.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "test": "cross-env reactScripts=true react-scripts test --env=jsdom",
+    "eject": "cross-env reactScripts=true react-scripts eject"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-jest": "^23.2.0",
+    "cross-env": "^5.2.0",
+    "react-scripts": "^1.1.4",
+    "react-testing-library": "^4.1.2"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "lodash": "^4.17.10",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  }
+}
