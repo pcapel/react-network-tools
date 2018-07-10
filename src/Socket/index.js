@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 
-export const withSocket = (Component, Context) => {
+export const withSocketContext = (Wrapped, Context) => {
   return props => {
     return (
       <Context.Consumer>
-        {ctx => (<Component socket={ctx.socket} {...props} />)}
+        {ctx => (<Wrapped socket={ctx.socket} {...props} />)}
       </Context.Consumer>
     );
   }
 }
-
 
 class On extends Component {
   _apply = (method) => {
@@ -36,10 +35,22 @@ class On extends Component {
 }
 
 class Emit extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      previousEmission: [],
+      hasFired: false
+    }
+  }
+
   fire = (event, payload) => {
     const { socket } = this.props;
     payload = _.isUndefined(payload) ? {} : payload;
     socket.emit(event, payload);
+    this.setState({
+      previousEmission: [{event: event, payload: payload}],
+      hasFired: true
+    });
   }
 
   fires = (emissions) => {
@@ -47,6 +58,10 @@ class Emit extends Component {
     emissions.map((emission) => {
       socket.emit(emission.event, emission.payload);
       return null;
+    });
+    this.setState({
+      previousEmission: emissions,
+      hasFired: true
     });
   }
 
@@ -61,14 +76,16 @@ class Emit extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { onUpdate, force } = this.props;
-    onUpdate.map((emission, i) => {
-      let prevIndex = prevProps.onUpdate.indexOf(emission);
+    const { onUpdates } = this.props;
+    onUpdates.map((emission, i) => {
+      let prevIndex = prevProps.onUpdates.indexOf(emission);
       if (prevIndex > -1
-          && _.isEqual(emission, prevProps.onUpdate[prevIndex])
-          && !force) {
-        return null;
-      }
+          // check that the emission is the same as the previous
+          // this way any emission changes for the total will trigger a re-fire
+          && _.isEqual(emission, prevProps.onUpdates[prevIndex])
+          && this.state.hasFired) {
+            return null;
+          }
       else {
         this.fire(emission.event, emission.payload);
         return null;
@@ -83,9 +100,8 @@ class Emit extends Component {
       domEvent,
       payload,
       socket,
-      onUpdate,
+      onUpdates,
       onMount,
-      force,
       emissions,
       children,
       ...passThroughProps
@@ -142,9 +158,8 @@ class Emit extends Component {
 
 Emit.defaultProps = {
   onMount: [],
-  onUpdate: [],
-  renders: false,
-  force: false
+  onUpdates: [],
+  renders: false
 }
 
 export const Socket = {};

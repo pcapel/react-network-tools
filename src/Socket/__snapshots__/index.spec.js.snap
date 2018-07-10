@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Socket.Emit Unit Tests wraps a component 1`] = `
+<div
+  id="test-wrapper"
+>
+  <span
+    id="props-length"
+  >
+    0
+  </span>
+</div>
+`;

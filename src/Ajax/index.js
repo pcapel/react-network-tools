@@ -2,15 +2,14 @@ import React, { Component } from 'react';
 import _ from 'lodash';
 import axios from 'axios';
 
-import { Loadable } from '..';
 import { urlWithParams } from '../utils';
 
-export const withEndpointContext = (Component, Context) => {
+export const withEndpointContext = (Wrapped, Context) => {
   return props => {
     return (
       <Context.Consumer>
         {
-          mapping => (<Component endpoints={mapping.endpoints} {...props} />)
+          mapping => (<Wrapped endpoints={mapping.endpoints} {...props} />)
         }
       </Context.Consumer>
     );
@@ -19,7 +18,8 @@ export const withEndpointContext = (Component, Context) => {
 
 const withLoader = (Component, Loader) => {
   return props => {
-    const {isLoading, ...through} = props;
+    const {ajaxData, ...through} = props;
+    const {isLoading} = ajaxData;
     return (
       <Loader isLoading={isLoading}>
         <Component {...through} />
@@ -43,16 +43,16 @@ class AjaxWrapper extends Component {
   componentDidMount() {
     const CancelToken = axios.CancelToken;
     this.source = CancelToken.source();
-    let {isHeld} = this.state;
-    if (!isHeld) {
+    let {hold} = this.props;
+    if (!hold) {
       this.send(this.buildURL(this.props));
     }
   }
 
   componentDidUpdate(prevProps) {
-    let {isHeld} = this.props;
+    let {hold} = this.props;
     let nextURL = this.buildURL(this.props);
-    if (!_.isEqual(this.buildURL(prevProps).toString(), nextURL.toString()) && !isHeld) {
+    if (!_.isEqual(this.buildURL(prevProps).toString(), nextURL.toString()) && !hold) {
       this.send(nextURL);
     }
   }
@@ -80,10 +80,11 @@ class AjaxWrapper extends Component {
       endpoints,
       showLoading,
       params,
+      loader,
       ...passThroughProps
     } = this.props;
     const Receiver = receiver;
-    const Render = showLoading ? withLoadable(Receiver) : Receiver;
+    const Render = React.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
     return (
       <Render ajaxData={ this.state }
         isLoading={this.state.isLoading}
@@ -119,4 +120,4 @@ AjaxWrapper.defaultProps = {
   params: {}
 }
 
-export const Ajax = withEndpointContext(AjaxWrapper);
+export const Ajax = AjaxWrapper;
