@@ -1,6 +1,6 @@
 {
   "name": "react-network-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Declarative data providers using socket.io and axios for react applications",
   "main": "src/index.js",
   "repository": "https://github.rackspace.com/phil9824/react-network-tools.git",
