@@ -153,7 +153,9 @@ Emit.defaultProps = {
   renders: false
 }
 
-export const Socket = {};
+const Socket = {};
 
 Socket.On = On;
 Socket.Emit = Emit;
+
+exports.Socket = Socket;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const withContext = (Wrapped, Context, propName) => {
+const withContext = (Wrapped, Context, propName) => {
   return props => {
     return (
       <Context.Consumer>
@@ -16,7 +16,7 @@ export const withContext = (Wrapped, Context, propName) => {
   }
 }
 
-export const urlWithParams = (URLString, paramsObject) => {
+const urlWithParams = (URLString, paramsObject) => {
   let URLInstance = new URL(URLString);
   if (URLInstance.searchParams === undefined) {
     let params = new URLSearchParams(paramsObject);
@@ -29,7 +29,7 @@ export const urlWithParams = (URLString, paramsObject) => {
   return URLInstance;
 }
 
-export const reactEvents = [
+const reactEvents = [
   'onCopy',
   'onCut',
   'onPaste',
@@ -76,3 +76,7 @@ export const reactEvents = [
   'onLoad' ,
   'onError'
 ];
+
+exports.withContext = withContext;
+exports.urlWithParams = urlWithParams;
+exports.reactEvents = reactEvents;

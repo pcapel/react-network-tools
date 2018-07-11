@@ -3,4 +3,4 @@ const {Socket} = require('./Socket');
 const {reactEvents, withContext} = require('./utils');
 
 
-export { Socket, Ajax, withLoader, withContext, reactEvents };
+exports = { Socket, Ajax, withLoader, withContext, reactEvents };

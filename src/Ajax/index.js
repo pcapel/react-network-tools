@@ -109,4 +109,6 @@ AjaxWrapper.defaultProps = {
   params: {}
 }
 
-export const Ajax = AjaxWrapper;
+const Ajax = AjaxWrapper;
+exports.Ajax = Ajax;
+exports.withLoader = withLoader;
