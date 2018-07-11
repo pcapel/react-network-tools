@@ -1,4 +1,5 @@
-const React, { Component } = require('react');
+const React = require('react');
+const { Component } = require('react');
 const _ = require('lodash');
 
 class On extends Component {
