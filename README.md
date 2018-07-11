@@ -40,7 +40,7 @@ Socket contains two namespaced components, `Emit` and `On`.  These are exactly
 what you think they are.
 
 #### Socket.Emit
-The `Emit` wrapper is the most complex out of all of the components this package
+  The `Emit` wrapper is the most complex out of all of the components this package
 provides, since it has some varied use cases.  The simplest, and most familiar,
 is when it is used like any other AJAX request.  That is, you emit to the socket
 and expect a return value.  This would normally be the callback function
@@ -56,7 +56,7 @@ you don't want something to fire off immediately, but you don't want to have to
 write complicated logic in your components to handle rendering the thing.  Or,
 at least **I** don't want to have to.  So the API provides ways around that.
 
-Props:
+  Props:
   - renders: <Component> A valid react component to render as the child
               (should it be something that renders when the event fires?)
   - event: <String> The event name to fire
@@ -70,7 +70,7 @@ Props:
   - onMount: <Object> Emissions to fire on componentDidMount
   - children: <React.Children> La di da
 
-Common Patterns:
+  Common Patterns:
 
 #### Socket.On
 The `On` component registers handlers for the specified event, and will
