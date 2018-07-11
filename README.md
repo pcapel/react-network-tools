@@ -1,5 +1,6 @@
 # react-network-tools
 Declarative data providers using socket.io and axios for react applications.
+:hankey::fire::hankey::fire:
 
 ## Why
 Because I wanted to use these in more than one project, and copy-pasta is a
@@ -11,6 +12,13 @@ I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
 `yarn add https://github.rackspace.com/phil9824/react-network-tools.git`
 
  Should get you up and running.
+
+ ## Contents
+ - [Socket](#socket)
+   - [Socket.Emit](#socketemit)
+   - [Socket.On](#socketon)
+ - [Ajax](#ajax)
+ - [ToDo](#todo)
 
 ## Use
 The API consists of two Higher Order Components (HOCs), `<Socket />` and `<Ajax />`.
@@ -35,12 +43,15 @@ Additionally, the convenience method `withContext` is provided out of `src/utils
 to wrap the component in a context provider.  I wrap the components in their own
 module and export the wrapped component to isolate the logic, but you do you.
 
-### Socket
+---
+
+# Socket
 Socket contains two namespaced components, `Emit` and `On`.  These are exactly
 what you think they are.
 
-#### Socket.Emit
-  The `Emit` wrapper is the most complex out of all of the components this package
+
+## Socket.Emit
+The `Emit` wrapper is the most complex out of all of the components this package
 provides, since it has some varied use cases.  The simplest, and most familiar,
 is when it is used like any other AJAX request.  That is, you emit to the socket
 and expect a return value.  This would normally be the callback function
@@ -56,67 +67,100 @@ you don't want something to fire off immediately, but you don't want to have to
 write complicated logic in your components to handle rendering the thing.  Or,
 at least **I** don't want to have to.  So the API provides ways around that.
 
-  Props:
-  - renders: <Component> A valid react component to render as the child
-              (should it be something that renders when the event fires?)
-  - event: <String> The event name to fire
-  - domEvent: <String> One of the valid React events, such as 'onClick'
-  - payload: <Object> The payload to deliver with the event
-  - socket: <Object> The websocket to use for the connection, should probably be
-            provided with a context provider.
-  - emissions: <Array> An array of objects that follow the convention of:
-               {event: <String>, payload: <Object>}
-  - onUpdates: <Object> Emissions to fire on componentDidUpdate
-  - onMount: <Object> Emissions to fire on componentDidMount
-  - children: <React.Children> La di da
 
-  Common Patterns:
+### Props
 
-#### Socket.On
+- `renders: <Component>` A valid react component to render as the child
+  - (should it be something that renders when the event  fires?)
+- `event: <String>` The event name to fire
+- `domEvent: <String>` One of the valid React events, such as 'onClick'
+- `payload: <Object>` The payload to deliver with the event
+- `socket: <Object>` The websocket to use for the connection, should probably be provided with a context provider.
+- `emissions: <Array>` An array of objects that follow the convention of
+ ```javascript
+ {event: String, payload: Object}
+ ```
+- `onUpdates: <Object>` Emissions to fire on componentDidUpdate
+- `onMount: <Object>` Emissions to fire on componentDidMount
+- `children: <React.Children>` La di da
+
+
+### Common Patterns
+Coming Soon...
+
+---
+
+## Socket.On
 The `On` component registers handlers for the specified event, and will
 automatically remove them (an only those specified for the component), when it
 unmounts.  That _should_ mean that you can have multiple different handlers
 associated with the same event across components that are not necessarily mounted
 at the same time, without colliding the removal of listeners.
 
-Props:
-  - renders: <Component> A valid react component to render or update props on
-             the specified event
-  - socket: <Object> The websocket to use for the connection, should probably be
-            provided with a context provider.
-  - event: <String> The event name to listen for
-  - call: <Function> The callback function for the event
-  - handles: <Array> An array of objects matching the pattern
-             {event: <String>, use: <Function>}
-             Where each `handles.event` will be registered with the `handles.use`
+### Props
 
-Common Patterns:
+- `renders: <Component>` A valid react component to render or update props on the specified event
+- `socket: <Object>` The websocket to use for the connection, should probably be provided with a context provider.
+- `event: <String>` The event name to listen for
+- `call: <Function>` The callback function for the event
+- `handles: <Array>` An array of objects matching the pattern
+ ```javascript
+ {event: String, use: Function}
+ ```
+  Where each `handles.event` will be registered with the `handles.use`
 
-### Ajax
-Props:
-  - receiver: <Component> The component that should receive the server response
-  - url: <URL> The URL to which the method with send
-  - defaultData: <Any> Required default for the ajaxData
-  - callback: <Function> A function which will be called with the ajaxData as its
-              argument
-  - hold: <Boolean> Flag to hold the request until this value is `true`
-  - endpoints: <Object> An object mapping string keys to string base URLs for the
-               desired application endpoints
-  - target: <String> A key supplied to build the URL from the endpoint object
-            which allows easier support for contextual mappings
-  - path: <String> The path that will be applied to the target when building the
-          URL from endpoint mappings
-  - params: <Object> Query string parameters to append to the full URL for the
-            endpoint build process, example:
-            {startDate: '7-11-18'} -> https://baseurl/path?startDate=7-11-18
-            Supports as many key:value pairs as desired.
-  - showLoading: <Boolean> Flag to determine if a loader should wrap the
-                 component
-  - loader: <Component> Custom loading wrapper to use when `showLoading` is
-            provided as `true`
-Common Patterns:
 
-## To Do:
- - Add PropTypes, which will make the next one easier
- - Add docgen so I don't have to maintain this mess
- - Verify the spec for WebSockets, and make sure the component matches
+### Common Patterns
+Coming Soon...
+
+---
+
+## Ajax
+The `Ajax` component is a fairly straight forward interface around sending
+asynchronous requests to a server and handling the returned data.  At this time,
+the data is passed directly to a receiving component as an object containing 3
+fields:
+- `responseData: <Object>` The data from the response, using the `response.data`
+ pattern the Promise callback from the request, default is defaultData prop
+- `isLoading: <Boolean>` A flag indicating that the request has started, and is
+ not yet resolved, default false
+- `isError: <Boolean>` A flag indicating that the request resolved and was caught
+
+Since the `responseData` is set to `defaulData` in the constructor, the most sane
+default to pass in is that which the `receiver` will be expecting.  Since I can't
+know the use case for everyone, I left it free to modify.
+
+### Props
+- `receiver: <Component>` The component that should receive the server response
+- `url: <URL>` The URL to which the method with send
+- `defaultData: <Any>` Required default for the ajaxData
+- `callback: <Function>` A function which will be called with the ajaxData as its
+            argument
+- `hold: <Boolean>` Flag to hold the request until this value is `true`
+- `endpoints: <Object>` An object mapping string keys to string base URLs for the
+             desired application endpoints
+- `target: <String>` A key supplied to build the URL from the endpoint object
+          which allows easier support for contextual mappings
+- `path: <String>` The path that will be applied to the target when building the
+        URL from endpoint mappings
+- `params: <Object>` Query string parameters to append to the full URL for the
+ endpoint build process, example
+ ```javascript
+ {startDate: '7-11-18'}
+ ```
+ returns `https://baseurl/path?startDate=7-11-18`
+ Supports as many key:value pairs as desired.
+- `showLoading: <Boolean>` Flag to determine if a loader should wrap the component
+- `loader: <Component>` Custom loading wrapper to use when `showLoading` is
+ provided as `true`
+
+
+### Common Patterns
+Coming Soon...
+
+---
+
+# ToDo
+- Add PropTypes, which will make the next one easier
+- Add docgen so I don't have to maintain this mess
+- Verify the spec for WebSockets, and make sure the component matches
