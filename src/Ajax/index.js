@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import _ from 'lodash';
-import axios from 'axios';
+const React, { Component } = require('react');
+const _ = require('lodash');
+const axios = require('axios');
 
 import { urlWithParams } from '../utils';
 

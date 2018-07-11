@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import _ from 'lodash';
+const React, { Component } = require('react');
+const _ = require('lodash');
 
 class On extends Component {
   _apply = (method) => {
