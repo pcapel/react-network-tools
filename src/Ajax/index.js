@@ -3,7 +3,7 @@ const { Component } = require('react');
 const _ = require('lodash');
 const axios = require('axios');
 
-import { urlWithParams } from '../utils';
+const { urlWithParams } = require('../utils');
 
 const withLoader = (Component, Loader) => {
   return props => {
