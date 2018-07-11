@@ -1,3 +1,21 @@
+import React from 'react';
+
+export const withContext = (Wrapped, Context, propName) => {
+  return props => {
+    return (
+      <Context.Consumer>
+        {
+          providerValue => {
+            const fullProps = Object.assign({}, props);
+            fullProps[propName] = providerValue;
+            return (<Wrapped {...fullProps} />);
+          }
+        }
+      </Context.Consumer>
+    );
+  }
+}
+
 export const urlWithParams = (URLString, paramsObject) => {
   let URLInstance = new URL(URLString);
   if (URLInstance.searchParams === undefined) {

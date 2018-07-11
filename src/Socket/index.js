@@ -1,16 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
 
-export const withSocketContext = (Wrapped, Context) => {
-  return props => {
-    return (
-      <Context.Consumer>
-        {ctx => (<Wrapped socket={ctx.socket} {...props} />)}
-      </Context.Consumer>
-    );
-  }
-}
-
 class On extends Component {
   _apply = (method) => {
     const { socket, event, call, handles } = this.props;

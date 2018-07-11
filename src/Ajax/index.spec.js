@@ -3,8 +3,8 @@ import axios from 'axios';
 import _ from 'lodash';
 import { render, cleanup, wait, prettyDOM } from 'react-testing-library';
 
-import { Ajax, withEndpointContext } from '.';
-import { urlWithParams } from '../utils';
+import { Ajax } from '.';
+import { withContext, urlWithParams } from '../utils';
 
 class TestDummy extends Component {
   render() {
@@ -22,9 +22,7 @@ const testPath = new URL('https://localhost');
 const testPath2 = new URL('https://localhost/home')
 
 const mockEndpoints = {
-  endpoints: {
     localhost: testPath.toString()
-  }
 }
 
 const MockContext = React.createContext(mockEndpoints);
@@ -51,7 +49,7 @@ beforeEach(() => {
   axios.get.mockReset();
 });
 
-const CtxAjax = withEndpointContext(Ajax, MockContext);
+const CtxAjax = withContext(Ajax, MockContext, 'endpoints');
 
 describe('Ajax smoke test', () => {
   it('renders without crashing', () => {

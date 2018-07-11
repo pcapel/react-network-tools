@@ -3,8 +3,8 @@ import _ from 'lodash';
 import { render, wait, prettyDOM, fireEvent } from 'react-testing-library';
 import { Simulate } from 'react-dom/test-utils';
 
-import { Socket, withSocketContext } from './index';
-import { reactEvents } from '../utils';
+import { Socket } from './index';
+import { withContext, reactEvents } from '../utils';
 
 class TestDummy extends Component {
   render() {
@@ -18,11 +18,9 @@ class TestDummy extends Component {
 
 let scopedMock = jest.fn();
 const mockSocket = {
-  socket: {
-    on: jest.fn(),
-    emit: jest.fn(),
-    removeListener: jest.fn()
-  }
+  on: jest.fn(),
+  emit: jest.fn(),
+  removeListener: jest.fn()
 }
 
 const MockContext = React.createContext(mockSocket);
@@ -37,14 +35,14 @@ class MockApp extends Component {
 }
 
 const CtxSocket = {};
-CtxSocket.On = withSocketContext(Socket.On, MockContext);
-CtxSocket.Emit = withSocketContext(Socket.Emit, MockContext);
+CtxSocket.On = withContext(Socket.On, MockContext, 'socket');
+CtxSocket.Emit = withContext(Socket.Emit, MockContext, 'socket');
 
 beforeEach(() => {
   scopedMock.mockReset();
-  mockSocket.socket.on.mockReset();
-  mockSocket.socket.emit.mockReset();
-  mockSocket.socket.removeListener.mockReset();
+  mockSocket.on.mockReset();
+  mockSocket.emit.mockReset();
+  mockSocket.removeListener.mockReset();
 })
 
 describe('Socket smoke tests', () => {
@@ -65,9 +63,9 @@ describe('Socket.On Unit Tests', () => {
   it('registers an event with a handler', () => {
     let call = new scopedMock();
     call.name = 'helloWorldHandler';
-    render(<Socket.On socket={mockSocket.socket} event='hello-world' call={call} />);
-    expect(mockSocket.socket.on.mock.calls[0][0]).toEqual('hello-world');
-    expect(mockSocket.socket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
+    render(<Socket.On socket={mockSocket} event='hello-world' call={call} />);
+    expect(mockSocket.on.mock.calls[0][0]).toEqual('hello-world');
+    expect(mockSocket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
   });
 
   it('registers an event with a handler using context', () => {
@@ -77,16 +75,16 @@ describe('Socket.On Unit Tests', () => {
       <MockApp>
         <CtxSocket.On event='hello-world' call={call} />
       </MockApp>);
-    expect(mockSocket.socket.on.mock.calls[0][0]).toEqual('hello-world');
-    expect(mockSocket.socket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
+    expect(mockSocket.on.mock.calls[0][0]).toEqual('hello-world');
+    expect(mockSocket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
   });
 
   it('registers handlers for multiple events', () => {
     let calls = _.range(3).map(i => new scopedMock())
     calls.map((fn, i) => {fn.name = `handle${i}`});
     const events = calls.map((call, i) => ({event: `event-${i}`, use: call}));
-    render(<Socket.On socket={mockSocket.socket} handles={events} />);
-    mockSocket.socket.on.mock.calls.map((args, i) => {
+    render(<Socket.On socket={mockSocket} handles={events} />);
+    mockSocket.on.mock.calls.map((args, i) => {
       expect(args[0]).toEqual(`event-${i}`);
       expect(args[1].name).toEqual(`handle${i}`);
     });
@@ -100,7 +98,7 @@ describe('Socket.On Unit Tests', () => {
       <MockApp>
         <CtxSocket.On handles={events} />
       </MockApp>);
-    mockSocket.socket.on.mock.calls.map((args, i) => {
+    mockSocket.on.mock.calls.map((args, i) => {
       expect(args[0]).toEqual(`event-${i}`);
       expect(args[1].name).toEqual(`handle${i}`);
     });
@@ -110,9 +108,9 @@ describe('Socket.On Unit Tests', () => {
 describe('Socket.Emit Unit Tests', () => {
   it('fires event with payload for onMount', () => {
     const onMounts = [{event: 'on-load-event', payload: 'a happy little string'}];
-    render(<Socket.Emit socket={mockSocket.socket} onMount={onMounts} />);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
+    render(<Socket.Emit socket={mockSocket} onMount={onMounts} />);
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
   });
 
   it('fires event with payload for onMount using context', () => {
@@ -121,14 +119,14 @@ describe('Socket.Emit Unit Tests', () => {
       <MockApp>
         <CtxSocket.Emit onMount={onMounts} />
       </MockApp>);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
   });
 
   it('fires only the supplied event on mount with empty payload', () => {
-    render(<Socket.Emit socket={mockSocket.socket} event='on-load-event' />);
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual({});
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    render(<Socket.Emit socket={mockSocket} event='on-load-event' />);
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual({});
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
   });
 
   it('fires only the supplied event on mount with empty payload using context', () => {
@@ -136,16 +134,16 @@ describe('Socket.Emit Unit Tests', () => {
       <MockApp>
         <CtxSocket.Emit event='on-load-event' />
       </MockApp>);
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual({});
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual({});
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
   });
 
   it('fires the supplied event on mount with payload', () => {
     const load = {data: 'pretty sneaky sis'}
-    render(<Socket.Emit socket={mockSocket.socket} event='on-load-event' payload={load} />);
-    expect(mockSocket.socket.emit.mock.calls[0].length).toBe(2);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toBe(load);
+    render(<Socket.Emit socket={mockSocket} event='on-load-event' payload={load} />);
+    expect(mockSocket.emit.mock.calls[0].length).toBe(2);
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toBe(load);
   });
 
   it('fires the supplied event on mount with payload using context', () => {
@@ -154,15 +152,15 @@ describe('Socket.Emit Unit Tests', () => {
       <MockApp>
         <CtxSocket.Emit event='on-load-event' payload={load} />
       </MockApp>);
-    expect(mockSocket.socket.emit.mock.calls[0].length).toBe(2);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toBe(load);
+    expect(mockSocket.emit.mock.calls[0].length).toBe(2);
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toBe(load);
   });
 
   it('doesn\'t fire onUpdate when first mounting', () => {
     const onUpdates = [{event: 'on-update-event', payload: 'a happy little string'}];
-    const {rerender} = render(<Socket.Emit socket={mockSocket.socket} onUpdates={onUpdates} />);
-    expect(mockSocket.socket.emit).not.toBeCalled();
+    const {rerender} = render(<Socket.Emit socket={mockSocket} onUpdates={onUpdates} />);
+    expect(mockSocket.emit).not.toBeCalled();
   });
 
   it('doesn\'t fire onUpdate when first mounting using context', () => {
@@ -171,15 +169,15 @@ describe('Socket.Emit Unit Tests', () => {
       <MockApp>
         <CtxSocket.Emit onUpdates={onUpdates} />
       </MockApp>);
-      expect(mockSocket.socket.emit).not.toBeCalled();
+      expect(mockSocket.emit).not.toBeCalled();
   });
 
   it('fires event with payload for onUpdate', () => {
     const onUpdates = [{event: 'on-update-event', payload: 'a happy little string'}];
-    const {rerender} = render(<Socket.Emit socket={mockSocket.socket} onUpdates={onUpdates} />);
-    rerender(<Socket.Emit socket={mockSocket.socket} onUpdates={onUpdates} />);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
+    const {rerender} = render(<Socket.Emit socket={mockSocket} onUpdates={onUpdates} />);
+    rerender(<Socket.Emit socket={mockSocket} onUpdates={onUpdates} />);
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-update-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
   });
 
   it('fires event with payload for onUpdate using context', () => {
@@ -192,35 +190,8 @@ describe('Socket.Emit Unit Tests', () => {
       <MockApp>
         <CtxSocket.Emit onUpdates={onUpdates} />
       </MockApp>);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
-  });
-
-
-  it('will not fire same update emission twice without `force` prop', () => {
-    const onUpdates = [{event: 'on-update-event', payload: 'a happy little string'}];
-    const {rerender} = render(<Socket.Emit socket={mockSocket.socket} onUpdates={onUpdates} />);
-    rerender(<Socket.Emit socket={mockSocket.socket} onUpdates={onUpdates} />);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
-    rerender(<Socket.Emit socket={mockSocket.socket} onUpdate={onUpdates} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(1)
-  });
-
-  it('will not fire same update emission twice without `force` prop using context', () => {
-    const onUpdates = [{event: 'on-update-event', payload: 'a happy little string'}];
-    const {rerender} = render(
-      <MockApp>
-        <CtxSocket.Emit onUpdates={onUpdates} />
-      </MockApp>);
-    rerender(
-        <MockApp>
-          <CtxSocket.Emit onUpdates={onUpdates} />
-        </MockApp>);
-    expect(mockSocket.socket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.socket.emit.mock.calls[0][1]).toEqual('a happy little string');
-    rerender(<Socket.Emit socket={mockSocket.socket} onUpdate={onUpdates} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(1)
+    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-update-event');
+    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
   });
 
   it('wraps a component', () => {
@@ -231,17 +202,17 @@ describe('Socket.Emit Unit Tests', () => {
   });
 
   it('fires a single emit with onClick of wrapped component', () => {
-      const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' event='button-press-event' />);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' event='button-press-event' />);
+      expect(mockSocket.emit).not.toBeCalled();
       Simulate.click(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit).toBeCalled();
   });
 
   it('fires a single emit with onClick of wrapped component using context', () => {
-      const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' event='button-press-event' />);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' event='button-press-event' />);
+      expect(mockSocket.emit.mock.calls.length).toBe(0);
       Simulate.click(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit.mock.calls.length).toBe(1);
   });
 
   it('fires multiple emissions with onClick of wrapped component', () => {
@@ -250,10 +221,10 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-second-event', payload: {}},
       {event: 'clicked-third-event', payload: {}}
     ];
-    const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' emissions={emissions} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+    const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' emissions={emissions} />);
+    expect(mockSocket.emit.mock.calls.length).toBe(0);
     Simulate.click(container.firstChild);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(3);
+    expect(mockSocket.emit.mock.calls.length).toBe(3);
   });
 
   it('fires multiple emissions with onClick of wrapped component using context', () => {
@@ -262,10 +233,10 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-second-event', payload: {}},
       {event: 'clicked-third-event', payload: {}}
     ];
-    const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' emissions={emissions} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+    const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' emissions={emissions} />);
+    expect(mockSocket.emit.mock.calls.length).toBe(0);
     Simulate.click(container.firstChild);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(3);
+    expect(mockSocket.emit.mock.calls.length).toBe(3);
   });
 
   it('fires emissions and an event if passed with onClick of wrapped component', () => {
@@ -274,10 +245,10 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-second-event', payload: {}},
       {event: 'clicked-third-event', payload: {}}
     ];
-    const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' event='say-hello' emissions={emissions} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+    const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' event='say-hello' emissions={emissions} />);
+    expect(mockSocket.emit.mock.calls.length).toBe(0);
     Simulate.click(container.firstChild);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(4);
+    expect(mockSocket.emit.mock.calls.length).toBe(4);
   });
 
   it('fires emissions and an event if passed with onClick of wrapped component using context', () => {
@@ -286,10 +257,10 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-second-event', payload: {}},
       {event: 'clicked-third-event', payload: {}}
     ];
-    const {container} = render(<Socket.Emit socket={mockSocket.socket} renders={TestDummy} domEvent='onClick' event='say-hello' emissions={emissions} />);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+    const {container} = render(<Socket.Emit socket={mockSocket} renders={TestDummy} domEvent='onClick' event='say-hello' emissions={emissions} />);
+    expect(mockSocket.emit.mock.calls.length).toBe(0);
     Simulate.click(container.firstChild);
-    expect(mockSocket.socket.emit.mock.calls.length).toBe(4);
+    expect(mockSocket.emit.mock.calls.length).toBe(4);
   });
 
   it('passes through non-api props to wrapped component', () => {
@@ -306,28 +277,28 @@ describe('Socket.Emit Unit Tests', () => {
 
   it('wraps children and fires a domEvent for them', () => {
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit socket={mockSocket} domEvent='onClick' event='hello-work'>
         <TestDummy />
       </Socket.Emit>);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      expect(mockSocket.emit.mock.calls.length).toBe(0);
       Simulate.click(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit.mock.calls.length).toBe(1);
   });
 
   it('wraps children and fires a domEvent for them using context', () => {
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit socket={mockSocket} domEvent='onClick' event='hello-work'>
         <TestDummy />
       </Socket.Emit>);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      expect(mockSocket.emit.mock.calls.length).toBe(0);
       Simulate.click(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit.mock.calls.length).toBe(1);
   });
 
   it('does not override the child handler for the event', () => {
     const spy = jest.fn();
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit socket={mockSocket} domEvent='onClick' event='hello-work'>
         <TestDummy onClick={spy} />
       </Socket.Emit>);
       expect(spy).not.toBeCalled();
@@ -338,7 +309,7 @@ describe('Socket.Emit Unit Tests', () => {
   it('does not override the child handler for the event using context', () => {
     const spy = jest.fn();
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit socket={mockSocket} domEvent='onClick' event='hello-work'>
         <TestDummy onClick={spy} />
       </Socket.Emit>);
       expect(spy.mock.calls.length).toBe(0);
@@ -348,26 +319,26 @@ describe('Socket.Emit Unit Tests', () => {
 
   it('handles mouse enter', () => {
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onMouseEnter' event='mouse-entered'>
+      <Socket.Emit socket={mockSocket} domEvent='onMouseEnter' event='mouse-entered'>
         <TestDummy />
       </Socket.Emit>);
       const div = container.querySelector('#test-wrapper');
       // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      expect(mockSocket.emit.mock.calls.length).toBe(0);
       Simulate.mouseEnter(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit.mock.calls.length).toBe(1);
   });
 
   it('handles mouse enter using context', () => {
     const {container} = render(
-      <Socket.Emit socket={mockSocket.socket} domEvent='onMouseEnter' event='mouse-entered'>
+      <Socket.Emit socket={mockSocket} domEvent='onMouseEnter' event='mouse-entered'>
         <TestDummy />
       </Socket.Emit>);
       const div = container.querySelector('#test-wrapper');
       // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(0);
+      expect(mockSocket.emit.mock.calls.length).toBe(0);
       Simulate.mouseEnter(container.firstChild);
-      expect(mockSocket.socket.emit.mock.calls.length).toBe(1);
+      expect(mockSocket.emit.mock.calls.length).toBe(1);
   });
 
 });

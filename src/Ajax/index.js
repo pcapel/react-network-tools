@@ -4,18 +4,6 @@ import axios from 'axios';
 
 import { urlWithParams } from '../utils';
 
-export const withEndpointContext = (Wrapped, Context) => {
-  return props => {
-    return (
-      <Context.Consumer>
-        {
-          mapping => (<Wrapped endpoints={mapping.endpoints} {...props} />)
-        }
-      </Context.Consumer>
-    );
-  }
-}
-
 const withLoader = (Component, Loader) => {
   return props => {
     const {ajaxData, ...through} = props;
