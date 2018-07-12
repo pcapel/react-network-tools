@@ -1,6 +1,5 @@
-const React = require('react');
-const { Component } = require('react');
-const _ = require('lodash');
+import React, { Component } from 'react';
+import _ from 'lodash';
 
 class On extends Component {
   _apply = (method) => {
@@ -153,9 +152,7 @@ Emit.defaultProps = {
   renders: false
 }
 
-const Socket = {};
+export const Socket = {};
 
 Socket.On = On;
 Socket.Emit = Emit;
-
-exports.Socket = Socket;

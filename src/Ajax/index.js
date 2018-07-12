@@ -1,11 +1,11 @@
-const React = require('react');
-const { Component } = require('react');
-const _ = require('lodash');
-const axios = require('axios');
+import React from 'react';
+import { Component } from 'react';
+import _ from 'lodash';
+import axios from 'axios';
 
-const { urlWithParams } = require('../utils');
+ import { urlWithParams } from '../utils';
 
-const withLoader = (Component, Loader) => {
+export const withLoader = (Component, Loader) => {
   return props => {
     const {ajaxData, ...through} = props;
     const {isLoading} = ajaxData;
@@ -109,6 +109,4 @@ AjaxWrapper.defaultProps = {
   params: {}
 }
 
-const Ajax = AjaxWrapper;
-exports.Ajax = Ajax;
-exports.withLoader = withLoader;
+export const Ajax = AjaxWrapper;
