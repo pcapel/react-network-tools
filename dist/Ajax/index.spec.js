@@ -1,18 +1,32 @@
+'use strict';
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _axios = require('axios');
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _reactTestingLibrary = require('react-testing-library');
+
+var _2 = require('.');
+
+var _utils = require('../utils');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-import React, { Component } from 'react';
-import axios from 'axios';
-import _ from 'lodash';
-import { render, cleanup, wait, prettyDOM } from 'react-testing-library';
-
-import { Ajax } from '.';
-import { withContext, urlWithParams } from '../utils';
 
 var TestDummy = function (_Component) {
   _inherits(TestDummy, _Component);
@@ -26,15 +40,15 @@ var TestDummy = function (_Component) {
   _createClass(TestDummy, [{
     key: 'render',
     value: function render() {
-      return React.createElement(
+      return _react2.default.createElement(
         'div',
         { id: 'test-wrapper' },
-        React.createElement(
+        _react2.default.createElement(
           'span',
           { id: 'props-data' },
           this.props.ajaxData.responseData
         ),
-        React.createElement(
+        _react2.default.createElement(
           'span',
           { id: 'props-length' },
           Object.keys(this.props).length
@@ -44,7 +58,7 @@ var TestDummy = function (_Component) {
   }]);
 
   return TestDummy;
-}(Component);
+}(_react.Component);
 
 jest.mock('axios');
 
@@ -55,7 +69,7 @@ var mockEndpoints = {
   localhost: testPath.toString()
 };
 
-var MockContext = React.createContext(mockEndpoints);
+var MockContext = _react2.default.createContext(mockEndpoints);
 
 var MockApp = function (_Component2) {
   _inherits(MockApp, _Component2);
@@ -69,7 +83,7 @@ var MockApp = function (_Component2) {
   _createClass(MockApp, [{
     key: 'render',
     value: function render() {
-      return React.createElement(
+      return _react2.default.createElement(
         MockContext.Provider,
         { value: mockEndpoints },
         this.props.children
@@ -78,13 +92,13 @@ var MockApp = function (_Component2) {
   }]);
 
   return MockApp;
-}(Component);
+}(_react.Component);
 
 var canceller = {
   cancel: jest.fn()
 };
 
-axios.CancelToken = {
+_axios2.default.CancelToken = {
   source: function source() {
     return canceller;
   }
@@ -92,115 +106,115 @@ axios.CancelToken = {
 
 beforeEach(function () {
   canceller.cancel.mockReset();
-  axios.get.mockReset();
+  _axios2.default.get.mockReset();
 });
 
-var CtxAjax = withContext(Ajax, MockContext, 'endpoints');
+var CtxAjax = (0, _utils.withContext)(_2.Ajax, MockContext, 'endpoints');
 
 describe('Ajax smoke test', function () {
   it('renders without crashing', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
-    render(React.createElement(Ajax, { receiver: TestDummy, url: testPath, defaultData: 'Loading...',
-      callback: _.noop }));
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath, defaultData: 'Loading...',
+      callback: _lodash2.default.noop }));
   });
 });
 
 describe('Ajax unittests', function () {
   it('performs axios get on componentDidMount', function () {
-    axios.get.mockResolvedValueOnce({ data: 'performs axios get on componentDidMount' }).mockResolvedValueOnce({ data: 'performs axios get on componentDidMount' });
-    render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop }));
-    expect(axios.get.mock.calls.length).toBe(1);
-    render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop, showLoading: true }));
-    expect(axios.get.mock.calls.length).toBe(2);
+    _axios2.default.get.mockResolvedValueOnce({ data: 'performs axios get on componentDidMount' }).mockResolvedValueOnce({ data: 'performs axios get on componentDidMount' });
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop }));
+    expect(_axios2.default.get.mock.calls.length).toBe(1);
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop, showLoading: true }));
+    expect(_axios2.default.get.mock.calls.length).toBe(2);
   });
 
   it('cancels a call when unmounted', function () {
-    axios.get.mockResolvedValueOnce({ data: 'cancels a call when unmounted' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'cancels a call when unmounted' });
 
-    var _render = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop })),
+    var _render = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop })),
         unmount = _render.unmount;
 
-    return wait(function () {
+    return (0, _reactTestingLibrary.wait)(function () {
       unmount();
       expect(canceller.cancel.mock.calls.length).toBe(1);
     });
   });
 
   it('calls to a url passed in as a string', function () {
-    axios.get.mockResolvedValueOnce({ data: 'calls to a url passed in' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'calls to a url passed in' });
 
-    var _render2 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop })),
+    var _render2 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop })),
         container = _render2.container;
 
-    expect(axios.get.mock.calls[0][0]).toEqual(urlWithParams('https://localhost/', {}));
+    expect(_axios2.default.get.mock.calls[0][0]).toEqual((0, _utils.urlWithParams)('https://localhost/', {}));
   });
 
   it('calls a url if the props update to a different value', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
 
-    var _render3 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
+    var _render3 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
       defaultData: 'Loading...', hold: true })),
         rerender = _render3.rerender;
 
-    expect(axios.get.mock.calls.length).toBe(0);
-    rerender(React.createElement(Ajax, { receiver: TestDummy, url: testPath2,
+    expect(_axios2.default.get.mock.calls.length).toBe(0);
+    rerender(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath2,
       defaultData: 'Loading...' }));
-    expect(axios.get.mock.calls.length).toBe(1);
+    expect(_axios2.default.get.mock.calls.length).toBe(1);
   });
 
   it('passes the result of a call to its child', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
 
-    var _render4 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop })),
+    var _render4 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop })),
         container = _render4.container;
 
-    return wait(function () {
+    return (0, _reactTestingLibrary.wait)(function () {
       expect(container.querySelector('#props-data').textContent).toBe('some data');
     });
   });
 
   it('passes all unknown props to receiver', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
     var recevierProps = { 1: '', 2: '', 3: '', 4: '' };
 
-    var _render5 = render(React.createElement(Ajax, Object.assign({ receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _.noop
+    var _render5 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, Object.assign({ receiver: TestDummy, url: testPath,
+      defaultData: 'Loading...', callback: _lodash2.default.noop
     }, recevierProps))),
         container = _render5.container;
 
-    return wait(function () {
+    return (0, _reactTestingLibrary.wait)(function () {
       // add 2 to the expected length for the ajaxData, and isLoading
       expect(container.querySelector('#props-length').textContent).toBe('6');
     });
   });
 
   it('calls the supplied callback', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
     var callback = jest.fn();
 
-    var _render6 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
+    var _render6 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
       defaultData: 'Loading...', callback: callback })),
         container = _render6.container;
 
-    return wait(function () {
+    return (0, _reactTestingLibrary.wait)(function () {
       expect(callback.mock.calls.length).toBe(1);
     });
   });
 
   it('supplies the callback with data as param', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
     var callback = jest.fn();
 
-    var _render7 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
+    var _render7 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
       defaultData: 'Loading...', callback: callback })),
         container = _render7.container;
 
-    return wait(function () {
+    return (0, _reactTestingLibrary.wait)(function () {
       var _callback$mock$calls$ = callback.mock.calls[0][0],
           responseData = _callback$mock$calls$.responseData,
           isLoading = _callback$mock$calls$.isLoading,
@@ -214,72 +228,72 @@ describe('Ajax unittests', function () {
   });
 
   it('holds a call if hold is true', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
 
-    var _render8 = render(React.createElement(Ajax, { receiver: TestDummy, url: testPath,
+    var _render8 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
       defaultData: 'Loading...', hold: true })),
         container = _render8.container;
 
-    expect(axios.get.mock.calls.length).toBe(0);
+    expect(_axios2.default.get.mock.calls.length).toBe(0);
   });
 
   it('calls axios get on mount with target and path instead of url', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
 
-    var _render9 = render(React.createElement(
+    var _render9 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       MockApp,
       null,
-      React.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: '',
+      _react2.default.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: '',
         defaultData: 'Loading...' })
     )),
         container = _render9.container;
 
-    expect(axios.get.mock.calls.length).toBe(1);
+    expect(_axios2.default.get.mock.calls.length).toBe(1);
   });
 
   it('calls to the correct endpoint with target and path', function () {
-    axios.get.mockResolvedValueOnce({ data: 'some data' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'some data' });
 
-    var _render10 = render(React.createElement(
+    var _render10 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       MockApp,
       null,
-      React.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'home',
+      _react2.default.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'home',
         defaultData: 'Loading...' })
     )),
         container = _render10.container;
 
-    expect(axios.get.mock.calls[0][0].toString()).toEqual('https://localhost/home');
+    expect(_axios2.default.get.mock.calls[0][0].toString()).toEqual('https://localhost/home');
   });
 
   it('calls an endpoint if the path prop updates to a different value', function () {
-    axios.get.mockResolvedValue({ data: 'some data' });
+    _axios2.default.get.mockResolvedValue({ data: 'some data' });
 
-    var _render11 = render(React.createElement(
+    var _render11 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       MockApp,
       null,
-      React.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'home',
+      _react2.default.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'home',
         defaultData: 'Loading...', hold: true })
     )),
         rerender = _render11.rerender;
 
-    expect(axios.get).not.toBeCalled();
-    rerender(React.createElement(
+    expect(_axios2.default.get).not.toBeCalled();
+    rerender(_react2.default.createElement(
       MockApp,
       null,
-      React.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'other',
+      _react2.default.createElement(CtxAjax, { receiver: TestDummy, target: 'localhost', path: 'other',
         defaultData: 'Loading...', hold: false })
     ));
-    expect(axios.get).toBeCalled();
+    expect(_axios2.default.get).toBeCalled();
   });
 
   it('adds params to the url', function () {
-    axios.get.mockResolvedValueOnce({ data: 'calls to a url passed in' });
+    _axios2.default.get.mockResolvedValueOnce({ data: 'calls to a url passed in' });
 
-    var _render12 = render(React.createElement(Ajax, { receiver: TestDummy,
+    var _render12 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy,
       url: testPath, params: { one: 1, two: 2 },
-      defaultData: 'Loading...', callback: _.noop })),
+      defaultData: 'Loading...', callback: _lodash2.default.noop })),
         container = _render12.container;
 
-    expect(axios.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
+    expect(_axios2.default.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
   });
 });

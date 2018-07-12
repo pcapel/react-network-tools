@@ -1,3 +1,5 @@
-import { cleanup } from 'react-testing-library';
+'use strict';
 
-afterEach(cleanup);
+var _reactTestingLibrary = require('react-testing-library');
+
+afterEach(_reactTestingLibrary.cleanup);
