@@ -326,8 +326,8 @@ describe('Socket.Emit Unit Tests', () => {
     );
     const div = container.querySelector('#test-wrapper');
     // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
-    expect(emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     Simulate.mouseEnter(container.firstChild);
-    expect(emit.mock.calls.length).toBe(1);
+    expect(emit).toBeCalled();
   });
 });
