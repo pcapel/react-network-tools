@@ -9,5 +9,6 @@ exports[`Socket.Emit Unit Tests wraps a component 1`] = `
   >
     0
   </span>
+  <ul />
 </div>
 `;

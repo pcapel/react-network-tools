@@ -1,4 +1,7 @@
 import React from 'react';
+import _ from 'lodash';
+import { Socket } from './Socket';
+import { Ajax } from './Ajax';
 
 export const withContext = (Wrapped, Context, propName) => {
   return props => {
@@ -16,6 +19,17 @@ export const withContext = (Wrapped, Context, propName) => {
   }
 }
 
+export const withSocketContext = (Context) => {
+  const contextualized = {};
+  contextualized.On = withContext(Socket.On, Context, 'socket');
+  contextualized.Emit = withContext(Socket.Emit, Context, 'socket');
+  return contextualized;
+}
+
+export const withEndpointContext = (Context) => {
+  return withContext(Ajax, Context, 'endpoints');
+}
+
 export const urlWithParams = (URLString, paramsObject) => {
   let URLInstance = new URL(URLString);
   if (URLInstance.searchParams === undefined) {
@@ -27,6 +41,12 @@ export const urlWithParams = (URLString, paramsObject) => {
     }
   }
   return URLInstance;
+}
+
+export const hasUndefined = (select, object) => {
+  let use = {};
+  select.map(key => _.merge(use, {[key]: object[key]}))
+  return Object.values(use).every(item => !(item === undefined));
 }
 
 export const reactEvents = [

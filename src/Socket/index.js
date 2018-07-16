@@ -1,13 +1,29 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
+import { hasUndefined } from '../utils';
+
+class WrapWithProps extends Component {
+  render() {
+    const {children} = this.props;
+    return (
+      React.Children.map(children, (child) => {
+        return React.cloneElement(child, this.props);
+      })
+    );
+  }
+}
 
 class On extends Component {
-  _apply = (method) => {
-    const { socket, event, call, handles } = this.props;
-    if ( ! _.isUndefined(event) ) {
-      socket[method](event, call);
-    } else if ( ! _.isUndefined(handles) ) {
-      handles.map(handle => socket[method](handle.event, handle.use));
+  constructor(props) {
+    super(props);
+    this.state = {
+      eventData: props.defaultData
+    }
+    this.is = {
+      renderer: hasUndefined(['event', 'renders'], props),
+      wrapper: hasUndefined(['event', 'children'], props),
+      register: hasUndefined(['event', 'call'], props),
+      handler: hasUndefined(['handles'], props)
     }
   }
 
@@ -20,7 +36,49 @@ class On extends Component {
   }
 
   render() {
-    return null;
+    const {
+      children,
+      defaultData,
+      socket,
+      event,
+      renders,
+      dataProp,
+      call,
+      handles,
+      ...passThroughProps
+    } = this.props;
+    if (this.is.handler || this.is.register) {
+      return null;
+    }
+    else if (this.is.wrapper) {
+      return (
+        <WrapWithProps {...{[dataProp]: this.state.eventData}}>
+          {children}
+        </WrapWithProps>
+      );
+    } else if (this.is.renderer) {
+      const Wrapped = renders;
+      return (
+        <Wrapped {...{[dataProp]: this.state.eventData}} {...passThroughProps} />
+      );
+    } else {
+      return null;
+    }
+  }
+
+  _apply = (method) => {
+    const { socket, event, call, handles, dataProp } = this.props;
+    if ( ! _.isUndefined(event) && ! _.isUndefined(call) ) {
+      socket[method](event, call);
+    } else if ( ! _.isUndefined(handles) ) {
+      handles.map(handle => socket[method](handle.event, handle.use));
+    } else if (!!event && !!dataProp) {
+      socket[method](event, this.update)
+    }
+  }
+
+  update = (data) => {
+    this.setState({eventData: data});
   }
 }
 
@@ -115,10 +173,9 @@ class Emit extends Component {
         </React.Fragment>
       );
     }
+    const eventPackage = this.repackaged(event, payload, emissions);
     return (
-      <Wrapped {...this.createEvent(domEvent, this.repackaged(event, payload, emissions))}
-        {...passThroughProps}>
-      </Wrapped>
+      <Wrapped {...this.createEvent(domEvent, eventPackage)} {...passThroughProps} />
     );
   }
 
@@ -139,10 +196,11 @@ class Emit extends Component {
     const isEvent = !_.isUndefined(event);
     payload = _.isUndefined(payload) ? {} : payload;
     emissions = _.isUndefined(emissions) ? [] : emissions;
+    let vals = emissions;
     if (isEvent) {
-      emissions.push({event: event, payload: payload});
+      vals = [{event: event, payload: payload}].concat(emissions);
     }
-    return emissions;
+    return vals;
   }
 }
 
