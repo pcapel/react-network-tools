@@ -11,7 +11,8 @@ I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
 
 `yarn add https://github.rackspace.com/phil9824/react-network-tools.git`
 
- Should get you up and running.
+ Should get you up and running.  Unless you can't clone from my repo, or something
+ that I don't know about.  In which case.... fork it I guess?
 
  ## Contents
  - [Socket](#socket)
@@ -39,9 +40,12 @@ component to receive the resulting data (or simply emit an event, for the socket
 As well as wrapping children and attaching an event handler to them.  I've found
 that both cases have their uses, but the second is probably more likely.
 
-Additionally, the convenience method `withContext` is provided out of `src/utils`
-to wrap the component in a context provider.  I wrap the components in their own
-module and export the wrapped component to isolate the logic, but you do you.
+Additionally, the convenience methods `withEndpointContext` and `withSocketContext`
+are provided to wrap the component in the application context that provides the
+value.  I wrap the components in their own module and export the wrapped component
+to isolate the logic, but you do you.  The only argument required is the context
+component.  So technically, you never _need_ to import `Ajax` or `Socket`.  
+You basically redefine them in your application code base.  Your call.
 
 ---
 
@@ -161,6 +165,9 @@ Coming Soon...
 ---
 
 # ToDo
+- Add back `withEndpointContext` and `withSocketContext` helper methods
+- Ensure that `withSocketContext` return fully wrapped for `On` and `Emit`
 - Add PropTypes, which will make the next one easier
 - Add docgen so I don't have to maintain this mess
 - Verify the spec for WebSockets, and make sure the component matches
+- How do you test code that is written with this library?
