@@ -3,13 +3,23 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.reactEvents = exports.urlWithParams = exports.withContext = undefined;
+exports.reactEvents = exports.hasUndefined = exports.urlWithParams = exports.withEndpointContext = exports.withSocketContext = exports.withContext = undefined;
 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _Socket = require('./Socket');
+
+var _Ajax = require('./Ajax');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var withContext = exports.withContext = function withContext(Wrapped, Context, propName) {
   return function (props) {
@@ -25,6 +35,17 @@ var withContext = exports.withContext = function withContext(Wrapped, Context, p
   };
 };
 
+var withSocketContext = exports.withSocketContext = function withSocketContext(Context) {
+  var contextualized = {};
+  contextualized.On = withContext(_Socket.Socket.On, Context, 'socket');
+  contextualized.Emit = withContext(_Socket.Socket.Emit, Context, 'socket');
+  return contextualized;
+};
+
+var withEndpointContext = exports.withEndpointContext = function withEndpointContext(Context) {
+  return withContext(_Ajax.Ajax, Context, 'endpoints');
+};
+
 var urlWithParams = exports.urlWithParams = function urlWithParams(URLString, paramsObject) {
   var URLInstance = new URL(URLString);
   if (URLInstance.searchParams === undefined) {
@@ -36,6 +57,16 @@ var urlWithParams = exports.urlWithParams = function urlWithParams(URLString, pa
     }
   }
   return URLInstance;
+};
+
+var hasUndefined = exports.hasUndefined = function hasUndefined(select, object) {
+  var use = {};
+  select.map(function (key) {
+    return _lodash2.default.merge(use, _defineProperty({}, key, object[key]));
+  });
+  return Object.values(use).every(function (item) {
+    return !(item === undefined);
+  });
 };
 
 var reactEvents = exports.reactEvents = ['onCopy', 'onCut', 'onPaste', 'onKeyDown', 'onKeyPress', 'onKeyUp', 'onFocus', 'onBlur', 'onChange', 'onInput', 'onInvalid', 'onSubmit', 'onClick', 'onContextMenu', 'onDoubleClick', 'onDrag', 'onDragEnd', 'onDragEnter', 'onDragExit', 'onDragLeave', 'onDragOver', 'onDragStart', 'onDrop', 'onMouseDown', 'onMouseEnter', 'onMouseLeave', 'onMouseMove', 'onMouseOut', 'onMouseOver', 'onMouseUp', 'onPointerDown', 'onPointerMove', 'onPointerUp', 'onPointerCancel', 'onGotPointerCapture', 'onLostPointerCapture', 'onPointerEnter', 'onPointerLeave', 'onPointerOver', 'onPointerOut', 'onSelect', 'onScroll', 'onWheel', 'onLoad', 'onError'];

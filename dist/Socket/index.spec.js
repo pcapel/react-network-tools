@@ -14,6 +14,8 @@ var _reactTestingLibrary = require('react-testing-library');
 
 var _testUtils = require('react-dom/test-utils');
 
+var _mockSocket = require('mock-socket');
+
 var _index = require('./index');
 
 var _utils = require('../utils');
@@ -26,45 +28,23 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var TestDummy = function (_Component) {
-  _inherits(TestDummy, _Component);
+// TODO: get rid of the "with context" tests, they're dumb and not needed
 
-  function TestDummy() {
-    _classCallCheck(this, TestDummy);
+// https://github.com/thoov/mock-socket/issues/176
+jest.useFakeTimers();
 
-    return _possibleConstructorReturn(this, (TestDummy.__proto__ || Object.getPrototypeOf(TestDummy)).apply(this, arguments));
-  }
+var simpleSpy = jest.fn();
 
-  _createClass(TestDummy, [{
-    key: 'render',
-    value: function render() {
-      var eventHandlers = _lodash2.default.pick(this.props, _utils.reactEvents);
-      return _react2.default.createElement(
-        'div',
-        Object.assign({ id: 'test-wrapper' }, eventHandlers),
-        _react2.default.createElement(
-          'span',
-          { id: 'props-length' },
-          Object.keys(this.props).length
-        )
-      );
-    }
-  }]);
-
-  return TestDummy;
-}(_react.Component);
-
-var scopedMock = jest.fn();
-var mockSocket = {
+var simpleMockSocket = {
   on: jest.fn(),
   emit: jest.fn(),
   removeListener: jest.fn()
 };
 
-var MockContext = _react2.default.createContext(mockSocket);
+var MockContext = _react2.default.createContext(simpleMockSocket);
 
-var MockApp = function (_Component2) {
-  _inherits(MockApp, _Component2);
+var MockApp = function (_Component) {
+  _inherits(MockApp, _Component);
 
   function MockApp() {
     _classCallCheck(this, MockApp);
@@ -77,7 +57,7 @@ var MockApp = function (_Component2) {
     value: function render() {
       return _react2.default.createElement(
         MockContext.Provider,
-        { value: mockSocket },
+        { value: simpleMockSocket },
         this.props.children
       );
     }
@@ -86,16 +66,54 @@ var MockApp = function (_Component2) {
   return MockApp;
 }(_react.Component);
 
-var CtxSocket = {};
-CtxSocket.On = (0, _utils.withContext)(_index.Socket.On, MockContext, 'socket');
-CtxSocket.Emit = (0, _utils.withContext)(_index.Socket.Emit, MockContext, 'socket');
-
 beforeEach(function () {
-  scopedMock.mockReset();
-  mockSocket.on.mockReset();
-  mockSocket.emit.mockReset();
-  mockSocket.removeListener.mockReset();
+  simpleMockSocket.on.mockReset();
+  simpleMockSocket.emit.mockReset();
+  simpleMockSocket.removeListener.mockReset();
 });
+
+var TestDummy = function (_Component2) {
+  _inherits(TestDummy, _Component2);
+
+  function TestDummy() {
+    _classCallCheck(this, TestDummy);
+
+    return _possibleConstructorReturn(this, (TestDummy.__proto__ || Object.getPrototypeOf(TestDummy)).apply(this, arguments));
+  }
+
+  _createClass(TestDummy, [{
+    key: 'render',
+    value: function render() {
+      var _this3 = this;
+
+      var eventHandlers = _lodash2.default.pick(this.props, _utils.reactEvents);
+      return _react2.default.createElement(
+        'div',
+        Object.assign({ id: 'test-wrapper' }, eventHandlers),
+        _react2.default.createElement(
+          'span',
+          { id: 'props-length' },
+          Object.keys(this.props).length
+        ),
+        _react2.default.createElement(
+          'ul',
+          null,
+          Object.keys(this.props).map(function (propName) {
+            return _react2.default.createElement(
+              'li',
+              { key: propName, id: propName },
+              _this3.props[propName] + ''
+            );
+          })
+        )
+      );
+    }
+  }]);
+
+  return TestDummy;
+}(_react.Component);
+
+var CtxSocket = (0, _utils.withSocketContext)(MockContext);
 
 describe('Socket smoke tests', function () {
   it('renders Socket.On without crashing', function () {
@@ -113,28 +131,24 @@ describe('Socket smoke tests', function () {
 
 describe('Socket.On Unit Tests', function () {
   it('registers an event with a handler', function () {
-    var call = new scopedMock();
-    call.name = 'helloWorldHandler';
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.On, { socket: mockSocket, event: 'hello-world', call: call }));
-    expect(mockSocket.on.mock.calls[0][0]).toEqual('hello-world');
-    expect(mockSocket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
+    var call = new simpleSpy();
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.On, { socket: simpleMockSocket, event: 'hello-world', call: call }));
+    expect(simpleMockSocket.on).toBeCalledWith('hello-world', call);
   });
 
   it('registers an event with a handler using context', function () {
-    var call = new scopedMock();
-    call.name = 'helloWorldHandler';
+    var call = new simpleSpy();
     (0, _reactTestingLibrary.render)(_react2.default.createElement(
       MockApp,
       null,
       _react2.default.createElement(CtxSocket.On, { event: 'hello-world', call: call })
     ));
-    expect(mockSocket.on.mock.calls[0][0]).toEqual('hello-world');
-    expect(mockSocket.on.mock.calls[0][1].name).toEqual('helloWorldHandler');
+    expect(simpleMockSocket.on).toBeCalledWith('hello-world', call);
   });
 
   it('registers handlers for multiple events', function () {
     var calls = _lodash2.default.range(3).map(function (i) {
-      return new scopedMock();
+      return new simpleSpy();
     });
     calls.map(function (fn, i) {
       fn.name = 'handle' + i;
@@ -142,314 +156,265 @@ describe('Socket.On Unit Tests', function () {
     var events = calls.map(function (call, i) {
       return { event: 'event-' + i, use: call };
     });
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.On, { socket: mockSocket, handles: events }));
-    mockSocket.on.mock.calls.map(function (args, i) {
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.On, { socket: simpleMockSocket, handles: events }));
+    simpleMockSocket.on.mock.calls.map(function (args, i) {
       expect(args[0]).toEqual('event-' + i);
       expect(args[1].name).toEqual('handle' + i);
     });
   });
 
-  it('registers handlers for multiple events using context', function () {
-    var calls = _lodash2.default.range(3).map(function (i) {
-      return new scopedMock();
+  it('passes event data to child as dataProp', function () {
+    // the MockServer/MockSocket setup might work in a standalone function
+    var url = 'ws://localhost:8081';
+    var MockServer = new _mockSocket.Server(url);
+    MockServer.on('connection', function (socket) {
+      socket.on('test-target', function () {
+        socket.emit('test-this-event', 'event message');
+      });
     });
-    calls.map(function (fn, i) {
-      fn.name = 'handle' + i;
+    var MockSocket = new _mockSocket.SocketIO(url);
+    // https://github.com/thoov/mock-socket/issues/176
+    jest.runOnlyPendingTimers();
+    MockSocket.removeListener = jest.fn();
+
+    var _render = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+      _index.Socket.On,
+      { socket: MockSocket, event: 'test-this-event', dataProp: 'bloobidy' },
+      _react2.default.createElement(TestDummy, null)
+    )),
+        container = _render.container;
+
+    expect(container.querySelector('#bloobidy').textContent).toBe('undefined');
+    MockSocket.emit('test-target');
+    expect(container.querySelector('#bloobidy').textContent).toBe('event message');
+    MockServer.close();
+  });
+
+  it('passes event data to child as dataProp with defaultData', function () {
+    // the MockServer/MockSocket setup might work in a standalone function
+    var url = 'ws://localhost:8081';
+    var MockServer = new _mockSocket.Server(url);
+    MockServer.on('connection', function (socket) {
+      socket.on('test-target', function () {
+        socket.emit('test-this-event', 'event message');
+      });
     });
-    var events = calls.map(function (call, i) {
-      return { event: 'event-' + i, use: call };
-    });
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.On, { handles: events })
-    ));
-    mockSocket.on.mock.calls.map(function (args, i) {
-      expect(args[0]).toEqual('event-' + i);
-      expect(args[1].name).toEqual('handle' + i);
-    });
+    var MockSocket = new _mockSocket.SocketIO(url);
+    // https://github.com/thoov/mock-socket/issues/176
+    jest.runOnlyPendingTimers();
+    MockSocket.removeListener = jest.fn();
+
+    var _render2 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+      _index.Socket.On,
+      {
+        socket: MockSocket,
+        event: 'test-this-event',
+        dataProp: 'bloobidy',
+        defaultData: 'Loading...' },
+      _react2.default.createElement(TestDummy, null)
+    )),
+        container = _render2.container;
+
+    expect(container.querySelector('#bloobidy').textContent).toBe('Loading...');
+    MockSocket.emit('test-target');
+    expect(container.querySelector('#bloobidy').textContent).toBe('event message');
+    MockServer.close();
   });
 });
 
 describe('Socket.Emit Unit Tests', function () {
   it('fires event with payload for onMount', function () {
-    var onMounts = [{ event: 'on-load-event', payload: 'a happy little string' }];
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, onMount: onMounts }));
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
-  });
+    var emit = simpleMockSocket.emit;
 
-  it('fires event with payload for onMount using context', function () {
     var onMounts = [{ event: 'on-load-event', payload: 'a happy little string' }];
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { onMount: onMounts })
-    ));
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, onMount: onMounts }));
+    expect(emit).toBeCalledWith('on-load-event', 'a happy little string');
   });
 
   it('fires only the supplied event on mount with empty payload', function () {
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, event: 'on-load-event' }));
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual({});
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
-  });
+    var emit = simpleMockSocket.emit;
 
-  it('fires only the supplied event on mount with empty payload using context', function () {
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { event: 'on-load-event' })
-    ));
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual({});
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, event: 'on-load-event' }));
+    expect(emit).toBeCalledWith('on-load-event', {});
   });
 
   it('fires the supplied event on mount with payload', function () {
-    var load = { data: 'pretty sneaky sis' };
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, event: 'on-load-event', payload: load }));
-    expect(mockSocket.emit.mock.calls[0].length).toBe(2);
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toBe(load);
-  });
+    var emit = simpleMockSocket.emit;
 
-  it('fires the supplied event on mount with payload using context', function () {
     var load = { data: 'pretty sneaky sis' };
-    (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { event: 'on-load-event', payload: load })
-    ));
-    expect(mockSocket.emit.mock.calls[0].length).toBe(2);
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-load-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toBe(load);
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, event: 'on-load-event', payload: load }));
+    expect(emit).toBeCalledWith('on-load-event', load);
   });
 
   it('doesn\'t fire onUpdate when first mounting', function () {
+    var emit = simpleMockSocket.emit;
+
     var onUpdates = [{ event: 'on-update-event', payload: 'a happy little string' }];
 
-    var _render = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, onUpdates: onUpdates })),
-        rerender = _render.rerender;
+    var _render3 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, onUpdates: onUpdates })),
+        rerender = _render3.rerender;
 
-    expect(mockSocket.emit).not.toBeCalled();
-  });
-
-  it('doesn\'t fire onUpdate when first mounting using context', function () {
-    var onUpdates = [{ event: 'on-update-event', payload: 'a happy little string' }];
-
-    var _render2 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { onUpdates: onUpdates })
-    )),
-        rerender = _render2.rerender;
-
-    expect(mockSocket.emit).not.toBeCalled();
+    expect(emit).not.toBeCalled();
   });
 
   it('fires event with payload for onUpdate', function () {
+    var emit = simpleMockSocket.emit;
+
     var onUpdates = [{ event: 'on-update-event', payload: 'a happy little string' }];
 
-    var _render3 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, onUpdates: onUpdates })),
-        rerender = _render3.rerender;
-
-    rerender(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, onUpdates: onUpdates }));
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
-  });
-
-  it('fires event with payload for onUpdate using context', function () {
-    var onUpdates = [{ event: 'on-update-event', payload: 'a happy little string' }];
-
-    var _render4 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { onUpdates: onUpdates })
-    )),
+    var _render4 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, onUpdates: onUpdates })),
         rerender = _render4.rerender;
 
-    rerender(_react2.default.createElement(
-      MockApp,
-      null,
-      _react2.default.createElement(CtxSocket.Emit, { onUpdates: onUpdates })
-    ));
-    expect(mockSocket.emit.mock.calls[0][0]).toEqual('on-update-event');
-    expect(mockSocket.emit.mock.calls[0][1]).toEqual('a happy little string');
+    rerender(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket, onUpdates: onUpdates }));
+    expect(emit).toBeCalledWith('on-update-event', 'a happy little string');
   });
 
   it('wraps a component', function () {
     var _render5 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { renders: TestDummy })),
         container = _render5.container;
 
-    return (0, _reactTestingLibrary.wait)(function () {
-      expect(container.firstChild).toMatchSnapshot();
-    });
+    expect(container.firstChild).toMatchSnapshot();
   });
 
   it('fires a single emit with onClick of wrapped component', function () {
-    var _render6 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', event: 'button-press-event' })),
+    var emit = simpleMockSocket.emit;
+
+    var _render6 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket,
+      renders: TestDummy,
+      domEvent: 'onClick',
+      event: 'button-press-event' })),
         container = _render6.container;
 
-    expect(mockSocket.emit).not.toBeCalled();
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit).toBeCalled();
+    expect(emit).toBeCalled();
   });
 
-  it('fires a single emit with onClick of wrapped component using context', function () {
-    var _render7 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', event: 'button-press-event' })),
+  it('fires exactly 1 emit with each onClick of wrapped component', function () {
+    var emit = simpleMockSocket.emit;
+
+    var _render7 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket,
+      renders: TestDummy,
+      domEvent: 'onClick',
+      event: 'button-press-event' })),
         container = _render7.container;
 
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(1);
+    expect(emit).toHaveBeenCalledTimes(1);
+    _testUtils.Simulate.click(container.firstChild);
+    expect(emit).toHaveBeenCalledTimes(2);
   });
 
   it('fires multiple emissions with onClick of wrapped component', function () {
+    var emit = simpleMockSocket.emit;
+
     var emissions = [{ event: 'clicked-first-event', payload: {} }, { event: 'clicked-second-event', payload: {} }, { event: 'clicked-third-event', payload: {} }];
 
-    var _render8 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', emissions: emissions })),
+    var _render8 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: simpleMockSocket,
+      renders: TestDummy,
+      domEvent: 'onClick',
+      emissions: emissions })),
         container = _render8.container;
 
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(3);
-  });
-
-  it('fires multiple emissions with onClick of wrapped component using context', function () {
-    var emissions = [{ event: 'clicked-first-event', payload: {} }, { event: 'clicked-second-event', payload: {} }, { event: 'clicked-third-event', payload: {} }];
-
-    var _render9 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', emissions: emissions })),
-        container = _render9.container;
-
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
-    _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(3);
+    expect(emit).toHaveBeenCalledTimes(emissions.length);
   });
 
   it('fires emissions and an event if passed with onClick of wrapped component', function () {
+    var emit = simpleMockSocket.emit;
+
     var emissions = [{ event: 'clicked-first-event', payload: {} }, { event: 'clicked-second-event', payload: {} }, { event: 'clicked-third-event', payload: {} }];
 
-    var _render10 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', event: 'say-hello', emissions: emissions })),
-        container = _render10.container;
+    var _render9 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, {
+      socket: simpleMockSocket,
+      renders: TestDummy,
+      domEvent: 'onClick',
+      event: 'say-hello',
+      emissions: emissions })),
+        container = _render9.container;
 
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(4);
+    expect(emit).toHaveBeenCalledTimes(4);
   });
 
-  it('fires emissions and an event if passed with onClick of wrapped component using context', function () {
+  it('fires emissions and exactly 1 event if passed with onClick of wrapped component', function () {
+    var emit = simpleMockSocket.emit;
+
     var emissions = [{ event: 'clicked-first-event', payload: {} }, { event: 'clicked-second-event', payload: {} }, { event: 'clicked-third-event', payload: {} }];
 
-    var _render11 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { socket: mockSocket, renders: TestDummy, domEvent: 'onClick', event: 'say-hello', emissions: emissions })),
-        container = _render11.container;
+    var _render10 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, {
+      socket: simpleMockSocket,
+      renders: TestDummy,
+      domEvent: 'onClick',
+      event: 'say-hello',
+      emissions: emissions })),
+        container = _render10.container;
 
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(4);
+    expect(emit).toHaveBeenCalledTimes(4);
+    _testUtils.Simulate.click(container.firstChild);
+    expect(emit).toHaveBeenCalledTimes(8);
   });
 
   it('passes through non-api props to wrapped component', function () {
     var passThrough = { one: 1, two: 2, three: 3 };
 
-    var _render12 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, Object.assign({ renders: TestDummy }, passThrough))),
-        container = _render12.container;
-
-    expect(container.querySelector('#props-length').textContent).toBe('3');
-  });
-
-  it('passes through non-api props to wrapped component using context', function () {
-    var passThrough = { one: 1, two: 2, three: 3 };
-
-    var _render13 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, Object.assign({ renders: TestDummy }, passThrough))),
-        container = _render13.container;
+    var _render11 = (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, Object.assign({ renders: TestDummy }, passThrough))),
+        container = _render11.container;
 
     expect(container.querySelector('#props-length').textContent).toBe('3');
   });
 
   it('wraps children and fires a domEvent for them', function () {
-    var _render14 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+    var emit = simpleMockSocket.emit;
+
+    var _render12 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onClick', event: 'hello-work' },
+      { socket: simpleMockSocket, domEvent: 'onClick', event: 'hello-work' },
       _react2.default.createElement(TestDummy, null)
     )),
-        container = _render14.container;
+        container = _render12.container;
 
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit.mock.calls.length).toBe(0);
     _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(1);
-  });
-
-  it('wraps children and fires a domEvent for them using context', function () {
-    var _render15 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onClick', event: 'hello-work' },
-      _react2.default.createElement(TestDummy, null)
-    )),
-        container = _render15.container;
-
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
-    _testUtils.Simulate.click(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(1);
+    expect(emit.mock.calls.length).toBe(1);
   });
 
   it('does not override the child handler for the event', function () {
+    var emit = simpleMockSocket.emit;
+
     var spy = jest.fn();
 
-    var _render16 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+    var _render13 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onClick', event: 'hello-work' },
+      { socket: simpleMockSocket, domEvent: 'onClick', event: 'hello-work' },
       _react2.default.createElement(TestDummy, { onClick: spy })
     )),
-        container = _render16.container;
+        container = _render13.container;
 
     expect(spy).not.toBeCalled();
     _testUtils.Simulate.click(container.firstChild);
     expect(spy).toBeCalled();
   });
 
-  it('does not override the child handler for the event using context', function () {
-    var spy = jest.fn();
-
-    var _render17 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onClick', event: 'hello-work' },
-      _react2.default.createElement(TestDummy, { onClick: spy })
-    )),
-        container = _render17.container;
-
-    expect(spy.mock.calls.length).toBe(0);
-    _testUtils.Simulate.click(container.firstChild);
-    expect(spy.mock.calls.length).toBe(1);
-  });
-
   it('handles mouse enter', function () {
-    var _render18 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+    var emit = simpleMockSocket.emit;
+
+    var _render14 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onMouseEnter', event: 'mouse-entered' },
+      { socket: simpleMockSocket, domEvent: 'onMouseEnter', event: 'mouse-entered' },
       _react2.default.createElement(TestDummy, null)
     )),
-        container = _render18.container;
+        container = _render14.container;
 
     var div = container.querySelector('#test-wrapper');
     // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
+    expect(emit).not.toBeCalled();
     _testUtils.Simulate.mouseEnter(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(1);
-  });
-
-  it('handles mouse enter using context', function () {
-    var _render19 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
-      _index.Socket.Emit,
-      { socket: mockSocket, domEvent: 'onMouseEnter', event: 'mouse-entered' },
-      _react2.default.createElement(TestDummy, null)
-    )),
-        container = _render19.container;
-
-    var div = container.querySelector('#test-wrapper');
-    // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
-    expect(mockSocket.emit.mock.calls.length).toBe(0);
-    _testUtils.Simulate.mouseEnter(container.firstChild);
-    expect(mockSocket.emit.mock.calls.length).toBe(1);
+    expect(emit).toBeCalled();
   });
 });

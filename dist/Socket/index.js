@@ -15,11 +15,13 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _utils = require('../utils');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -27,35 +29,72 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var On = function (_Component) {
-  _inherits(On, _Component);
+var WrapWithProps = function (_Component) {
+  _inherits(WrapWithProps, _Component);
 
-  function On() {
-    var _ref;
+  function WrapWithProps() {
+    _classCallCheck(this, WrapWithProps);
 
-    var _temp, _this, _ret;
+    return _possibleConstructorReturn(this, (WrapWithProps.__proto__ || Object.getPrototypeOf(WrapWithProps)).apply(this, arguments));
+  }
 
+  _createClass(WrapWithProps, [{
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      var children = this.props.children;
+
+      return _react2.default.Children.map(children, function (child) {
+        return _react2.default.cloneElement(child, _this2.props);
+      });
+    }
+  }]);
+
+  return WrapWithProps;
+}(_react.Component);
+
+var On = function (_Component2) {
+  _inherits(On, _Component2);
+
+  function On(props) {
     _classCallCheck(this, On);
 
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
+    var _this3 = _possibleConstructorReturn(this, (On.__proto__ || Object.getPrototypeOf(On)).call(this, props));
 
-    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = On.__proto__ || Object.getPrototypeOf(On)).call.apply(_ref, [this].concat(args))), _this), _this._apply = function (method) {
-      var _this$props = _this.props,
-          socket = _this$props.socket,
-          event = _this$props.event,
-          call = _this$props.call,
-          handles = _this$props.handles;
+    _this3._apply = function (method) {
+      var _this3$props = _this3.props,
+          socket = _this3$props.socket,
+          event = _this3$props.event,
+          call = _this3$props.call,
+          handles = _this3$props.handles,
+          dataProp = _this3$props.dataProp;
 
-      if (!_lodash2.default.isUndefined(event)) {
+      if (!_lodash2.default.isUndefined(event) && !_lodash2.default.isUndefined(call)) {
         socket[method](event, call);
       } else if (!_lodash2.default.isUndefined(handles)) {
         handles.map(function (handle) {
           return socket[method](handle.event, handle.use);
         });
+      } else if (!!event && !!dataProp) {
+        socket[method](event, _this3.update);
       }
-    }, _temp), _possibleConstructorReturn(_this, _ret);
+    };
+
+    _this3.update = function (data) {
+      _this3.setState({ eventData: data });
+    };
+
+    _this3.state = {
+      eventData: props.defaultData
+    };
+    _this3.is = {
+      renderer: (0, _utils.hasUndefined)(['event', 'renders'], props),
+      wrapper: (0, _utils.hasUndefined)(['event', 'children'], props),
+      register: (0, _utils.hasUndefined)(['event', 'call'], props),
+      handler: (0, _utils.hasUndefined)(['handles'], props)
+    };
+    return _this3;
   }
 
   _createClass(On, [{
@@ -71,46 +110,70 @@ var On = function (_Component) {
   }, {
     key: 'render',
     value: function render() {
-      return null;
+      var _props = this.props,
+          children = _props.children,
+          defaultData = _props.defaultData,
+          socket = _props.socket,
+          event = _props.event,
+          renders = _props.renders,
+          dataProp = _props.dataProp,
+          call = _props.call,
+          handles = _props.handles,
+          passThroughProps = _objectWithoutProperties(_props, ['children', 'defaultData', 'socket', 'event', 'renders', 'dataProp', 'call', 'handles']);
+
+      if (this.is.handler || this.is.register) {
+        return null;
+      } else if (this.is.wrapper) {
+        return _react2.default.createElement(
+          WrapWithProps,
+          _defineProperty({}, dataProp, this.state.eventData),
+          children
+        );
+      } else if (this.is.renderer) {
+        var Wrapped = renders;
+        return _react2.default.createElement(Wrapped, Object.assign({}, _defineProperty({}, dataProp, this.state.eventData), passThroughProps));
+      } else {
+        return null;
+      }
     }
   }]);
 
   return On;
 }(_react.Component);
 
-var Emit = function (_Component2) {
-  _inherits(Emit, _Component2);
+var Emit = function (_Component3) {
+  _inherits(Emit, _Component3);
 
   function Emit(props) {
     _classCallCheck(this, Emit);
 
-    var _this2 = _possibleConstructorReturn(this, (Emit.__proto__ || Object.getPrototypeOf(Emit)).call(this, props));
+    var _this4 = _possibleConstructorReturn(this, (Emit.__proto__ || Object.getPrototypeOf(Emit)).call(this, props));
 
-    _this2.fire = function (event, payload) {
-      var socket = _this2.props.socket;
+    _this4.fire = function (event, payload) {
+      var socket = _this4.props.socket;
 
       payload = _lodash2.default.isUndefined(payload) ? {} : payload;
       socket.emit(event, payload);
-      _this2.setState({
+      _this4.setState({
         previousEmission: [{ event: event, payload: payload }],
         hasFired: true
       });
     };
 
-    _this2.fires = function (emissions) {
-      var socket = _this2.props.socket;
+    _this4.fires = function (emissions) {
+      var socket = _this4.props.socket;
 
       emissions.map(function (emission) {
         socket.emit(emission.event, emission.payload);
         return null;
       });
-      _this2.setState({
+      _this4.setState({
         previousEmission: emissions,
         hasFired: true
       });
     };
 
-    _this2.createEvent = function (eventName, fires) {
+    _this4.createEvent = function (eventName, fires) {
       var childFn = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _lodash2.default.noop;
 
       if (_lodash2.default.isUndefined(eventName)) {
@@ -119,36 +182,37 @@ var Emit = function (_Component2) {
       return _defineProperty({}, eventName, function (e) {
         e.preventDefault();
         childFn(e);
-        _this2.fires(fires);
+        _this4.fires(fires);
       });
     };
 
-    _this2.repackaged = function (event, payload, emissions) {
+    _this4.repackaged = function (event, payload, emissions) {
       var isEvent = !_lodash2.default.isUndefined(event);
       payload = _lodash2.default.isUndefined(payload) ? {} : payload;
       emissions = _lodash2.default.isUndefined(emissions) ? [] : emissions;
+      var vals = emissions;
       if (isEvent) {
-        emissions.push({ event: event, payload: payload });
+        vals = [{ event: event, payload: payload }].concat(emissions);
       }
-      return emissions;
+      return vals;
     };
 
-    _this2.state = {
+    _this4.state = {
       previousEmission: [],
       hasFired: false
     };
-    return _this2;
+    return _this4;
   }
 
   _createClass(Emit, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
-      var _props = this.props,
-          renders = _props.renders,
-          domEvent = _props.domEvent,
-          event = _props.event,
-          payload = _props.payload,
-          onMount = _props.onMount;
+      var _props2 = this.props,
+          renders = _props2.renders,
+          domEvent = _props2.domEvent,
+          event = _props2.event,
+          payload = _props2.payload,
+          onMount = _props2.onMount;
 
       if (!_lodash2.default.isEqual(onMount, [])) {
         this.fires(onMount);
@@ -159,7 +223,7 @@ var Emit = function (_Component2) {
   }, {
     key: 'componentDidUpdate',
     value: function componentDidUpdate(prevProps) {
-      var _this3 = this;
+      var _this5 = this;
 
       var onUpdates = this.props.onUpdates;
 
@@ -168,10 +232,10 @@ var Emit = function (_Component2) {
         if (prevIndex > -1
         // check that the emission is the same as the previous
         // this way any emission changes for the total will trigger a re-fire
-        && _lodash2.default.isEqual(emission, prevProps.onUpdates[prevIndex]) && _this3.state.hasFired) {
+        && _lodash2.default.isEqual(emission, prevProps.onUpdates[prevIndex]) && _this5.state.hasFired) {
           return null;
         } else {
-          _this3.fire(emission.event, emission.payload);
+          _this5.fire(emission.event, emission.payload);
           return null;
         }
       });
@@ -179,19 +243,19 @@ var Emit = function (_Component2) {
   }, {
     key: 'render',
     value: function render() {
-      var _this4 = this;
+      var _this6 = this;
 
-      var _props2 = this.props,
-          renders = _props2.renders,
-          event = _props2.event,
-          domEvent = _props2.domEvent,
-          payload = _props2.payload,
-          socket = _props2.socket,
-          onUpdates = _props2.onUpdates,
-          onMount = _props2.onMount,
-          emissions = _props2.emissions,
-          children = _props2.children,
-          passThroughProps = _objectWithoutProperties(_props2, ['renders', 'event', 'domEvent', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'children']);
+      var _props3 = this.props,
+          renders = _props3.renders,
+          event = _props3.event,
+          domEvent = _props3.domEvent,
+          payload = _props3.payload,
+          socket = _props3.socket,
+          onUpdates = _props3.onUpdates,
+          onMount = _props3.onMount,
+          emissions = _props3.emissions,
+          children = _props3.children,
+          passThroughProps = _objectWithoutProperties(_props3, ['renders', 'event', 'domEvent', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'children']);
 
       var Wrapped = renders;
       if (!renders && _lodash2.default.isUndefined(children)) {
@@ -205,11 +269,12 @@ var Emit = function (_Component2) {
             if (_lodash2.default.isUndefined(childFn)) {
               childFn = _lodash2.default.noop;
             }
-            return _react2.default.cloneElement(child, _this4.createEvent(domEvent, _this4.repackaged(event, payload, emissions), childFn));
+            return _react2.default.cloneElement(child, _this6.createEvent(domEvent, _this6.repackaged(event, payload, emissions), childFn));
           })
         );
       }
-      return _react2.default.createElement(Wrapped, Object.assign({}, this.createEvent(domEvent, this.repackaged(event, payload, emissions)), passThroughProps));
+      var eventPackage = this.repackaged(event, payload, emissions);
+      return _react2.default.createElement(Wrapped, Object.assign({}, this.createEvent(domEvent, eventPackage), passThroughProps));
     }
   }]);
 
