@@ -3,15 +3,12 @@ import _ from 'lodash';
 import { Socket } from '../Socket';
 import { Ajax } from '../Ajax';
 
-export class WrapWithProps extends Component {
-  render() {
-    const {inject, children} = this.props;
-    return (
-      React.Children.map(children, (child) => {
-        return React.cloneElement(child, inject);
-      })
-    );
-  }
+export const WrapWithProps = ({inject, children}) => {
+  return (
+    React.Children.map(children, (child) => {
+      return React.cloneElement(child, inject);
+    })
+  );
 }
 
 export const withContext = (Wrapped, Context, propName) => {
