@@ -101,7 +101,7 @@ var On = function (_Component) {
       } else if (this.is.wrapper) {
         return _react2.default.createElement(
           _utils.WrapWithProps,
-          _defineProperty({}, dataProp, this.state.eventData),
+          { inject: _defineProperty({}, dataProp, this.state.eventData) },
           children
         );
       } else if (this.is.renderer) {

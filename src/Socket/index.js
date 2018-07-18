@@ -41,7 +41,7 @@ class On extends Component {
     }
     else if (this.is.wrapper) {
       return (
-        <WrapWithProps {...{[dataProp]: this.state.eventData}}>
+        <WrapWithProps inject={{[dataProp]: this.state.eventData}}>
           {children}
         </WrapWithProps>
       );

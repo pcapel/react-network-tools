@@ -194,7 +194,7 @@ describe('Socket.On Unit Tests', function () {
 
   it('passes event data to child as dataProp with defaultData', function () {
     // the MockServer/MockSocket setup might work in a standalone function
-    var url = 'ws://localhost:8081';
+    var url = 'ws://localhost:8082';
     var MockServer = new _mockSocket.Server(url);
     MockServer.on('connection', function (socket) {
       socket.on('test-target', function () {
