@@ -1,17 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
-import { hasUndefined } from '../utils';
-
-class WrapWithProps extends Component {
-  render() {
-    const {children} = this.props;
-    return (
-      React.Children.map(children, (child) => {
-        return React.cloneElement(child, this.props);
-      })
-    );
-  }
-}
+import { hasUndefined, WrapWithProps } from '../utils';
 
 class On extends Component {
   constructor(props) {

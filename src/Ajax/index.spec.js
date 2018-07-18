@@ -157,7 +157,7 @@ describe('Ajax unittests', () => {
         <CtxAjax receiver={TestDummy} target='localhost' path=''
           defaultData='Loading...' />
       </MockApp>);
-    expect(axios.get.mock.calls.length).toBe(1);
+    expect(axios.get).toBeCalled();
   });
 
   it('calls to the correct endpoint with target and path', () => {
@@ -192,5 +192,9 @@ describe('Ajax unittests', () => {
                                 url={testPath} params={{one: 1, two: 2}}
                                 defaultData='Loading...' callback={_.noop} />);
     expect(axios.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
-  })
+  });
+
+  it('has some sort of warning for when target/path is used without endpoints', () => {
+
+  });
 });

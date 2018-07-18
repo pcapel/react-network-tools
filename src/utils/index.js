@@ -1,7 +1,18 @@
-import React from 'react';
+import React, {Component} from 'react';
 import _ from 'lodash';
-import { Socket } from './Socket';
-import { Ajax } from './Ajax';
+import { Socket } from '../Socket';
+import { Ajax } from '../Ajax';
+
+export class WrapWithProps extends Component {
+  render() {
+    const {children} = this.props;
+    return (
+      React.Children.map(children, (child) => {
+        return React.cloneElement(child, this.props, child.props.children);
+      })
+    );
+  }
+}
 
 export const withContext = (Wrapped, Context, propName) => {
   return props => {
