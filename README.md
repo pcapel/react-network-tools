@@ -165,7 +165,9 @@ Coming Soon...
 ---
 
 # ToDo
-- Add modular wrappers and smaller components, but ensure that they display the correct names for debugging
+- Add modular wrappers and smaller components, but ensure that they display the
+  correct names for debugging
+- Change `domEvent` prop to just be the event name for react as a boolean
 - Add better handling of errors and edge cases
 - Add PropTypes, which will make the next one easier
 - Add docgen so I don't have to maintain this mess

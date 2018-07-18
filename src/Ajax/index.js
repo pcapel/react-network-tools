@@ -3,7 +3,7 @@ import { Component } from 'react';
 import _ from 'lodash';
 import axios from 'axios';
 
- import { urlWithParams } from '..';
+import { hasUndefined, WrapWithProps, urlWithParams } from '..';
 
 export const withLoader = (Component, Loader) => {
   return props => {
@@ -60,6 +60,7 @@ class AjaxWrapper extends Component {
   render() {
     const {
       receiver,
+      children,
       url,
       defaultData,
       callback,
@@ -108,5 +109,7 @@ AjaxWrapper.defaultProps = {
   showLoading: false,
   params: {}
 }
+
+AjaxWrapper.displayName = 'Ajax';
 
 export const Ajax = AjaxWrapper;

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { render, cleanup, wait, prettyDOM } from 'react-testing-library';
 
 import { Ajax } from '.';
-import { withContext, urlWithParams } from '..';
+import { withContext, urlWithParams, reactEvents } from '..';
 
 class TestDummy extends Component {
   render() {
@@ -192,9 +192,5 @@ describe('Ajax unittests', () => {
                                 url={testPath} params={{one: 1, two: 2}}
                                 defaultData='Loading...' callback={_.noop} />);
     expect(axios.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
-  });
-
-  it('has some sort of warning for when target/path is used without endpoints', () => {
-
   });
 });
