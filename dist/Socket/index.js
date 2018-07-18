@@ -15,7 +15,7 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _utils = require('../utils');
+var _2 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64,10 +64,10 @@ var On = function (_Component) {
       eventData: props.defaultData
     };
     _this.is = {
-      renderer: (0, _utils.hasUndefined)(['event', 'renders'], props),
-      wrapper: (0, _utils.hasUndefined)(['event', 'children'], props),
-      register: (0, _utils.hasUndefined)(['event', 'call'], props),
-      handler: (0, _utils.hasUndefined)(['handles'], props)
+      renderer: (0, _2.hasUndefined)(['event', 'renders'], props),
+      wrapper: (0, _2.hasUndefined)(['event', 'children'], props),
+      register: (0, _2.hasUndefined)(['event', 'call'], props),
+      handler: (0, _2.hasUndefined)(['handles'], props)
     };
     return _this;
   }
@@ -100,7 +100,7 @@ var On = function (_Component) {
         return null;
       } else if (this.is.wrapper) {
         return _react2.default.createElement(
-          _utils.WrapWithProps,
+          _2.WrapWithProps,
           { inject: _defineProperty({}, dataProp, this.state.eventData) },
           children
         );

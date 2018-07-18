@@ -18,7 +18,7 @@ var _mockSocket = require('mock-socket');
 
 var _index = require('./index');
 
-var _utils = require('../utils');
+var _2 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -86,7 +86,7 @@ var TestDummy = function (_Component2) {
     value: function render() {
       var _this3 = this;
 
-      var eventHandlers = _lodash2.default.pick(this.props, _utils.reactEvents);
+      var eventHandlers = _lodash2.default.pick(this.props, _2.reactEvents);
       return _react2.default.createElement(
         'div',
         Object.assign({ id: 'test-wrapper' }, eventHandlers),
@@ -113,7 +113,7 @@ var TestDummy = function (_Component2) {
   return TestDummy;
 }(_react.Component);
 
-var CtxSocket = (0, _utils.withSocketContext)(MockContext);
+var CtxSocket = (0, _2.withSocketContext)(MockContext);
 
 describe('Socket smoke tests', function () {
   it('renders Socket.On without crashing', function () {

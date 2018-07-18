@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { render, cleanup, wait, prettyDOM } from 'react-testing-library';
 
 import { Ajax } from '.';
-import { withContext, urlWithParams } from '../utils';
+import { withContext, urlWithParams } from '..';
 
 class TestDummy extends Component {
   render() {

@@ -5,7 +5,7 @@ import { Simulate } from 'react-dom/test-utils';
 import { SocketIO, Server } from 'mock-socket';
 
 import { Socket } from './index';
-import { withSocketContext, reactEvents } from '../utils';
+import { withSocketContext, reactEvents } from '..';
 
 // TODO: get rid of the "with context" tests, they're dumb and not needed
 

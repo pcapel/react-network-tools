@@ -3,7 +3,7 @@ import { Component } from 'react';
 import _ from 'lodash';
 import axios from 'axios';
 
- import { urlWithParams } from '../utils';
+ import { urlWithParams } from '..';
 
 export const withLoader = (Component, Loader) => {
   return props => {

@@ -18,7 +18,7 @@ var _reactTestingLibrary = require('react-testing-library');
 
 var _2 = require('.');
 
-var _utils = require('../utils');
+var _3 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -109,7 +109,7 @@ beforeEach(function () {
   _axios2.default.get.mockReset();
 });
 
-var CtxAjax = (0, _utils.withContext)(_2.Ajax, MockContext, 'endpoints');
+var CtxAjax = (0, _3.withContext)(_2.Ajax, MockContext, 'endpoints');
 
 describe('Ajax smoke test', function () {
   it('renders without crashing', function () {
@@ -150,7 +150,7 @@ describe('Ajax unittests', function () {
       defaultData: 'Loading...', callback: _lodash2.default.noop })),
         container = _render2.container;
 
-    expect(_axios2.default.get.mock.calls[0][0]).toEqual((0, _utils.urlWithParams)('https://localhost/', {}));
+    expect(_axios2.default.get.mock.calls[0][0]).toEqual((0, _3.urlWithParams)('https://localhost/', {}));
   });
 
   it('calls a url if the props update to a different value', function () {

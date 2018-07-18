@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
-import { hasUndefined, WrapWithProps } from '../utils';
+import { hasUndefined, WrapWithProps } from '..';
 
 class On extends Component {
   constructor(props) {

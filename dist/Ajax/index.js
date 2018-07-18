@@ -19,7 +19,7 @@ var _axios = require('axios');
 
 var _axios2 = _interopRequireDefault(_axios);
 
-var _utils = require('../utils');
+var _2 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -158,7 +158,7 @@ var _initialiseProps = function _initialiseProps() {
     } else {
       urlStr = url;
     }
-    return (0, _utils.urlWithParams)(urlStr, params);
+    return (0, _2.urlWithParams)(urlStr, params);
   };
 };
 
