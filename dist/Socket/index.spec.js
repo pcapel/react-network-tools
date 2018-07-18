@@ -183,6 +183,8 @@ describe('Socket.On Unit Tests', function () {
       _react2.default.createElement(TestDummy, null)
     )),
         container = _render.container;
+    // the dataProp is used to create an <li id=props.keys>
+
 
     expect(container.querySelector('#bloobidy').textContent).toBe('undefined');
     MockSocket.emit('test-target');
@@ -202,6 +204,7 @@ describe('Socket.On Unit Tests', function () {
     var MockSocket = new _mockSocket.SocketIO(url);
     // https://github.com/thoov/mock-socket/issues/176
     jest.runOnlyPendingTimers();
+    // MockSocket doesn't implement this function itself
     MockSocket.removeListener = jest.fn();
 
     var _render2 = (0, _reactTestingLibrary.render)(_react2.default.createElement(

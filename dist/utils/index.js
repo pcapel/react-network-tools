@@ -41,12 +41,12 @@ var WrapWithProps = exports.WrapWithProps = function (_Component) {
   _createClass(WrapWithProps, [{
     key: 'render',
     value: function render() {
-      var _this2 = this;
-
-      var children = this.props.children;
+      var _props = this.props,
+          inject = _props.inject,
+          children = _props.children;
 
       return _react2.default.Children.map(children, function (child) {
-        return _react2.default.cloneElement(child, _this2.props, child.props.children);
+        return _react2.default.cloneElement(child, inject);
       });
     }
   }]);

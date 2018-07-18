@@ -116,6 +116,7 @@ describe('Socket.On Unit Tests', () => {
         <TestDummy />
       </Socket.On>
     );
+    // the dataProp is used to create an <li id=props.keys>
     expect(container.querySelector('#bloobidy').textContent).toBe('undefined');
     MockSocket.emit('test-target')
     expect(container.querySelector('#bloobidy').textContent).toBe('event message');
@@ -134,6 +135,7 @@ describe('Socket.On Unit Tests', () => {
     const MockSocket = new SocketIO(url);
     // https://github.com/thoov/mock-socket/issues/176
     jest.runOnlyPendingTimers();
+    // MockSocket doesn't implement this function itself
     MockSocket.removeListener = jest.fn();
     const {container} = render(
       <Socket.On

@@ -5,10 +5,10 @@ import { Ajax } from '../Ajax';
 
 export class WrapWithProps extends Component {
   render() {
-    const {children} = this.props;
+    const {inject, children} = this.props;
     return (
       React.Children.map(children, (child) => {
-        return React.cloneElement(child, this.props, child.props.children);
+        return React.cloneElement(child, inject);
       })
     );
   }

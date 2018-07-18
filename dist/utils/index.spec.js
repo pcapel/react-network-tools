@@ -32,18 +32,18 @@ describe('WrapWithProps', function () {
   it('maps props onto a top-level child', function () {
     var _render = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.WrapWithProps,
-      { prop1: '', prop2: '' },
+      { inject: { prop1: '', prop2: '' } },
       _react2.default.createElement(Child, null)
     )),
         container = _render.container;
 
-    expect(container.firstChild.textContent).toBe('prop1 prop2 children');
+    expect(container.firstChild.textContent).toBe('prop1 prop2');
   });
 
   it('maps props onto all top-level children', function () {
     var _render2 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.WrapWithProps,
-      { prop1: '', prop2: '' },
+      { inject: { prop1: '', prop2: '' } },
       _react2.default.createElement(Child, null),
       _react2.default.createElement(Child, null),
       _react2.default.createElement(Child, null)
@@ -51,14 +51,14 @@ describe('WrapWithProps', function () {
         container = _render2.container;
 
     container.querySelectorAll('[data-testid]').forEach(function (el) {
-      expect(el.textContent).toBe('prop1 prop2 children');
+      expect(el.textContent).toBe('prop1 prop2');
     });
   });
 
   it('doesn\'t do weird things with chilren of children', function () {
     var _render3 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.WrapWithProps,
-      { prop1: '', prop2: '' },
+      { inject: { prop1: '', prop2: '' } },
       _react2.default.createElement(
         Holder,
         null,

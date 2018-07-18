@@ -22,29 +22,29 @@ const Holder = ({children}) => {
 describe('WrapWithProps', () => {
   it('maps props onto a top-level child', () => {
     const {container} = render(
-      <WrapWithProps prop1='' prop2=''>
+      <WrapWithProps inject={{prop1: '', prop2: ''}}>
         <Child />
       </WrapWithProps>
     );
-    expect(container.firstChild.textContent).toBe('prop1 prop2 children');
+    expect(container.firstChild.textContent).toBe('prop1 prop2');
   });
 
   it('maps props onto all top-level children', () => {
     const {container} = render(
-      <WrapWithProps prop1='' prop2=''>
+      <WrapWithProps inject={{prop1: '', prop2: ''}}>
         <Child />
         <Child />
         <Child />
       </WrapWithProps>
     );
     container.querySelectorAll('[data-testid]').forEach(el => {
-      expect(el.textContent).toBe('prop1 prop2 children')
+      expect(el.textContent).toBe('prop1 prop2')
     });
   });
 
   it('doesn\'t do weird things with chilren of children', () => {
     const {getByText} = render(
-      <WrapWithProps prop1='' prop2=''>
+      <WrapWithProps inject={{prop1: '', prop2: ''}}>
         <Holder>
           <div id='test'>Hello</div>
         </Holder>
