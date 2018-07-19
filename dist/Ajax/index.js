@@ -140,7 +140,7 @@ var _initialiseProps = function _initialiseProps() {
     }).then(function (response) {
       return response.data;
     }).then(function (data) {
-      return _this2.receive({ responseData: data, isLoading: false });
+      return _this2.receive({ responseData: data, isLoading: false, isError: false });
     }).catch(function (data) {
       return _this2.receive({ responseData: data, isLoading: false, isError: true });
     });
