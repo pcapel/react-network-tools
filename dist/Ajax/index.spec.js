@@ -296,6 +296,4 @@ describe('Ajax unittests', function () {
 
     expect(_axios2.default.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
   });
-
-  it('has some sort of warning for when target/path is used without endpoints', function () {});
 });

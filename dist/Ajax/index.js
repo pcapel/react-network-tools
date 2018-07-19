@@ -99,6 +99,7 @@ var AjaxWrapper = function (_Component) {
     value: function render() {
       var _props = this.props,
           receiver = _props.receiver,
+          children = _props.children,
           url = _props.url,
           defaultData = _props.defaultData,
           callback = _props.callback,
@@ -109,7 +110,7 @@ var AjaxWrapper = function (_Component) {
           showLoading = _props.showLoading,
           params = _props.params,
           loader = _props.loader,
-          passThroughProps = _objectWithoutProperties(_props, ['receiver', 'url', 'defaultData', 'callback', 'hold', 'target', 'path', 'endpoints', 'showLoading', 'params', 'loader']);
+          passThroughProps = _objectWithoutProperties(_props, ['receiver', 'children', 'url', 'defaultData', 'callback', 'hold', 'target', 'path', 'endpoints', 'showLoading', 'params', 'loader']);
 
       var Receiver = receiver;
       var Render = _react2.default.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
@@ -168,5 +169,7 @@ AjaxWrapper.defaultProps = {
   showLoading: false,
   params: {}
 };
+
+AjaxWrapper.displayName = 'Ajax';
 
 var Ajax = exports.Ajax = AjaxWrapper;

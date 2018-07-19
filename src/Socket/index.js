@@ -156,7 +156,8 @@ class Emit extends Component {
             if (_.isUndefined(childFn)) {
               childFn = _.noop;
             }
-            return React.cloneElement(child, this.createEvent(domEvent, this.repackaged(event, payload, emissions), childFn))
+            const eventPackage = this.repackaged(event, payload, emissions);
+            return React.cloneElement(child, this.createEvent(domEvent, eventPackage, childFn))
           })
         }
         </React.Fragment>
@@ -174,7 +175,6 @@ class Emit extends Component {
     }
     return {
       [eventName]: (e) => {
-        e.preventDefault();
         childFn(e);
         this.fires(fires)
       }

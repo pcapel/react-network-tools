@@ -404,15 +404,44 @@ describe('Socket.Emit Unit Tests', function () {
     expect(spy).toBeCalled();
   });
 
+  it('does not swallow a click event', function () {
+    var emit = simpleMockSocket.emit;
+
+    var spy = jest.fn();
+    var BigWrapper = function BigWrapper(_ref) {
+      var children = _ref.children;
+      return _react2.default.createElement(
+        'div',
+        { onClick: spy },
+        children
+      );
+    };
+
+    var _render14 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+      BigWrapper,
+      null,
+      _react2.default.createElement(
+        _index.Socket.Emit,
+        { socket: simpleMockSocket, domEvent: 'onClick', event: 'hello-work' },
+        _react2.default.createElement(TestDummy, { onClick: spy })
+      )
+    )),
+        container = _render14.container;
+
+    expect(spy).not.toBeCalled();
+    _testUtils.Simulate.click(container.firstChild);
+    expect(spy).toBeCalled();
+  });
+
   it('handles mouse enter', function () {
     var emit = simpleMockSocket.emit;
 
-    var _render14 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+    var _render15 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
       _index.Socket.Emit,
       { socket: simpleMockSocket, domEvent: 'onMouseEnter', event: 'mouse-entered' },
       _react2.default.createElement(TestDummy, null)
     )),
-        container = _render14.container;
+        container = _render15.container;
 
     var div = container.querySelector('#test-wrapper');
     // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))

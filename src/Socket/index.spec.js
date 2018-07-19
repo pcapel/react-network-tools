@@ -319,6 +319,22 @@ describe('Socket.Emit Unit Tests', () => {
       expect(spy).toBeCalled();
   });
 
+  it('does not swallow a click event', () => {
+    const {emit} = simpleMockSocket;
+    const spy = jest.fn();
+    const BigWrapper = ({children}) => (<div onClick={spy}>{children}</div>);
+    const {container} = render(
+      <BigWrapper>
+        <Socket.Emit socket={simpleMockSocket} domEvent='onClick' event='hello-work'>
+          <TestDummy onClick={spy} />
+        </Socket.Emit>
+      </BigWrapper>
+    );
+      expect(spy).not.toBeCalled();
+      Simulate.click(container.firstChild);
+      expect(spy).toBeCalled();
+  });
+
   it('handles mouse enter', () => {
     const {emit} = simpleMockSocket;
     const {container} = render(

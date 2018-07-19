@@ -155,7 +155,6 @@ var Emit = function (_Component2) {
         return {};
       }
       return _defineProperty({}, eventName, function (e) {
-        e.preventDefault();
         childFn(e);
         _this2.fires(fires);
       });
@@ -244,7 +243,8 @@ var Emit = function (_Component2) {
             if (_lodash2.default.isUndefined(childFn)) {
               childFn = _lodash2.default.noop;
             }
-            return _react2.default.cloneElement(child, _this4.createEvent(domEvent, _this4.repackaged(event, payload, emissions), childFn));
+            var eventPackage = _this4.repackaged(event, payload, emissions);
+            return _react2.default.cloneElement(child, _this4.createEvent(domEvent, eventPackage, childFn));
           })
         );
       }
