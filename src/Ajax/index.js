@@ -87,7 +87,7 @@ class AjaxWrapper extends Component {
     axios.get(url, {
       cancelToken: this.source.token
     }).then(response => response.data)
-      .then(data => this.receive({responseData: data, isLoading: false}))
+      .then(data => this.receive({responseData: data, isLoading: false, isError: false}))
       .catch(data => this.receive({responseData: data, isLoading: false, isError: true}))
   }
 
