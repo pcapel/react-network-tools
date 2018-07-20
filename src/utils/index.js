@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import _ from 'lodash';
-import { Socket } from '../Socket';
-import { Ajax } from '../Ajax';
+import {Socket} from '../Socket';
+import {Ajax} from '../Ajax';
 
 export const WrapWithProps = ({inject, children}) => {
   return (
@@ -107,3 +107,36 @@ export const reactEvents = [
   'onLoad' ,
   'onError'
 ];
+
+// picks an event name out of props assuming that a boolean exists with the
+// event name as the key, eg <EventGrabber onClick /> would return ['onClick']
+export const pickEvents = (props) => {
+  return Object.keys(_.pick(props, reactEvents));
+}
+
+// creates an object to be used as a spread props on a wrapped component,
+// @eventName string event name
+// @calls an array of objects following this convention
+// {func: <function>, args: <params>}
+// the params object will be passed to the function ala func(...params)
+// unless the key event: true is set, in which case the params will have the
+// event argument replaced with the actual event object.
+export const createHandler = (eventName, calls) => {
+  if (reactEvents.indexOf(eventName) === -1) {
+    if( !_.isUndefined(eventName)) {
+      console.error(`Unable to create valid handler using ${eventName}`);
+    }
+    return {};
+  }
+  return {
+    [eventName]: (e) => {
+      calls.map(entry => {
+        const args = entry.args || [];
+        if (entry.event) {
+          args.unshift(e);
+        }
+        entry.func(...args)
+      });
+    }
+  }
+}
