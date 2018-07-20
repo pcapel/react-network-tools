@@ -1,5 +1,5 @@
 # react-network-tools
-Declarative data providers using socket.io and axios for react applications.
+Declarative and composable data providers using socket.io and axios for react applications.
 :hankey::fire::hankey::fire:
 
 ## Why
