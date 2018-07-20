@@ -190,9 +190,30 @@ describe('Ajax unittests', () => {
 
   it('adds params to the url', () => {
     axios.get.mockResolvedValueOnce({data: 'calls to a url passed in'});
-    let { container } = render(<Ajax receiver={TestDummy}
+    const {container} = render(<Ajax receiver={TestDummy}
                                 url={testPath} params={{one: 1, two: 2}}
                                 defaultData='Loading...' callback={_.noop} />);
     expect(axios.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
+  });
+
+  it('renders children', () => {
+    // hold the call so you don't have to mock the resolved value
+    const {container} = render(
+      <Ajax url={testPath} hold>
+        <div data-testid='hello'></div>
+      </Ajax>
+    );
+    expect(container.querySelector('[data-testid]')).not.toBeNull();
+  });
+
+  it('fires a request on the desired event bubbling from child', () => {
+    axios.get.mockResolvedValueOnce({data: 'calls to a url passed in'});
+    const {container} = render(
+      <Ajax url={testPath}
+        onClick>
+        <div data-testid='hello'></div>
+      </Ajax>
+    );
+    expect(axios.get).toBeCalled();
   });
 });

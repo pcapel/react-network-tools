@@ -5,6 +5,7 @@ import axios from 'axios';
 
 import { hasUndefined, WrapWithProps, urlWithParams } from '..';
 
+// TODO: add displayName management...
 export const withLoader = (Component, Loader) => {
   return props => {
     const {ajaxData, ...through} = props;
@@ -72,12 +73,16 @@ class AjaxWrapper extends Component {
       loader,
       ...passThroughProps
     } = this.props;
-    const Receiver = receiver;
-    const Render = React.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
-    return (
-      <Render ajaxData={ this.state }
-        { ...passThroughProps } />
-    );
+    if (React.Children.count(children) === 0) {
+      const Receiver = receiver;
+      const Render = React.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
+      return (
+        <Render ajaxData={this.state}
+          {...passThroughProps} />
+      );
+    } else {
+      return children;
+    }
   }
 
   send = (url) => {

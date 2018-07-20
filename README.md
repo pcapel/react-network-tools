@@ -87,6 +87,19 @@ at least **I** don't want to have to.  So the API provides ways around that.
 - `onUpdates: <Object>` Emissions to fire on componentDidUpdate
 - `onMount: <Object>` Emissions to fire on componentDidMount
 - `children: <React.Children>` La di da
+- `<React DOM Event>: eg onClick` fires the emissions on the specified event.
+  Alternatively, you can pass this as a prop with an object value that is one of:
+  ```javascript
+  // most verbose
+  {
+    event: 'some-different-event',
+    use: transformFunction // a function that takes the DOM event and returns the payload
+  }
+  // less verbose
+  ['some-different-event', transformFunction]
+  // to re-use the designated socket event
+  transformFunction
+  ```
 
 
 ### Common Patterns
