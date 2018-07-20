@@ -12,7 +12,7 @@ export const WrapWithProps = ({inject, children}) => {
 }
 
 export const withContext = (Wrapped, Context, propName) => {
-  return props => {
+  const WithContext = props => {
     return (
       <Context.Consumer>
         {
@@ -25,6 +25,9 @@ export const withContext = (Wrapped, Context, propName) => {
       </Context.Consumer>
     );
   }
+  const wrapped = Wrapped.displayName || Wrapped.name;
+  WithContext.displayName = `withContext(${wrapped})`;
+  return WithContext;
 }
 
 export const withSocketContext = (Context) => {
