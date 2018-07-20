@@ -201,5 +201,8 @@ Emit.defaultProps = {
 
 export const Socket = {};
 
+On.displayName = 'Socket.On';
+Emit.displayName = 'Socket.Emit';
+
 Socket.On = On;
 Socket.Emit = Emit;
