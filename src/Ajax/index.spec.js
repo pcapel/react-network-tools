@@ -110,7 +110,7 @@ describe('Ajax unittests', () => {
     });
   });
 
-  fit('passes all unknown props to receiver', () => {
+  it('passes all unknown props to receiver', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
     const recevierProps = {1: '', 2: '', 3: '', 4: ''};
     let { container } = render(<Ajax receiver={TestDummy} url={testPath}
