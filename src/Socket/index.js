@@ -84,10 +84,11 @@ class Emit extends Component {
       previousEmission: [],
       hasFired: false
     }
+    this.domEventHandlers = [];
   }
 
   fire = (event, payload) => {
-    const { socket } = this.props;
+    const {socket} = this.props;
     payload = _.isUndefined(payload) ? {} : payload;
     socket.emit(event, payload);
     this.setState({
@@ -97,7 +98,7 @@ class Emit extends Component {
   }
 
   fires = (emissions) => {
-    const { socket } = this.props;
+    const {socket} = this.props;
     emissions.map((emission) => {
       socket.emit(emission.event, emission.payload);
       return null;
@@ -108,19 +109,29 @@ class Emit extends Component {
     });
   }
 
+  mapHandlers = (domEvent, emissions, firer) => {
+    const updatedEmissions = Object.assign([], emissions);
+    this.domEventHandlers.map((handler) => {
+      const addPayload = handler.transform(domEvent);
+      const socketEvent = handler.eventName;
+      updatedEmissions.push({event: socketEvent, payload: addPayload})
+    });
+    firer(updatedEmissions);
+  }
+
   componentDidMount() {
-    const { renders, event, payload, onMount } = this.props;
-    const domEvent = pickEvents(this.props)[0];
+    const {renders, event, payload, onMount} = this.props;
+    const domEventName = pickEvents(this.props)[0];
     if (!_.isEqual(onMount, [])) {
       this.fires(onMount)
     }
-    else if (!_.isUndefined(event) && !renders && _.isUndefined(domEvent)) {
+    else if (!_.isUndefined(event) && !renders && _.isUndefined(domEventName)) {
       this.fire(event, payload);
     }
   }
 
   componentDidUpdate(prevProps) {
-    const { onUpdates } = this.props;
+    const {onUpdates} = this.props;
     onUpdates.map((emission, i) => {
       let prevIndex = prevProps.onUpdates.indexOf(emission);
       if (prevIndex > -1
@@ -150,7 +161,10 @@ class Emit extends Component {
       ...passThroughProps
     } = this.props;
     const Wrapped = renders;
-    const domEvent = pickEvents(this.props)[0];
+    const domEventName = pickEvents(this.props)[0];
+    // is one of boolean, object, array,
+    const domEventHandle = this.props[domEventName];
+    this.attachDOMEventHandle(domEventHandle);
     if (!renders && _.isUndefined(children)) {
       return null;
     }
@@ -159,25 +173,51 @@ class Emit extends Component {
         <React.Fragment>
         {
           React.Children.map(children, (child) => {
-            let childFn = child.props[domEvent];
+            let childFn = child.props[domEventName];
             if (_.isUndefined(childFn)) {
               childFn = _.noop;
             }
+            const firesEmissions = this.repackaged(event, payload, emissions);
             const eventCalls = [
-              {func: this.fires, args: [this.repackaged(event, payload, emissions)]},
+              {func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires]},
               {func: childFn, event: true}
             ]
-            return React.cloneElement(child, createHandler(domEvent, eventCalls))
+            return React.cloneElement(child, createHandler(domEventName, eventCalls))
           })
         }
         </React.Fragment>
       );
     }
-    const eventCalls = [{func: this.fires, args: [this.repackaged(event, payload, emissions)]}];
-    const newProps = Object.assign(passThroughProps, createHandler(domEvent, eventCalls));
+    const firesEmissions = this.repackaged(event, payload, emissions);
+    const eventCalls = [{func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires]}];
+    const newProps = Object.assign(passThroughProps, createHandler(domEventName, eventCalls));
     return (
       <Wrapped {...newProps} />
     );
+  }
+
+  attachDOMEventHandle = (handle) => {
+    if (handle === undefined) {
+      return null;
+    } else if (Array.isArray(handle)) {
+      if (handle.length !== 2) {
+        console.error('Array args to DOM events must be 2 values')
+      }
+      this.domEventHandlers.push({
+        eventName: handle[0],
+        transform: handle[1]
+      });
+    } else if (handle.hasOwnProperty('event') && handle.hasOwnProperty('use')) {
+      this.domEventHandlers.push({
+        eventName: handle.event,
+        transform: handle.use
+      });
+    } else if ((typeof handle) === 'function') {
+      this.domEventHandlers.push({
+        eventName: this.props.event,
+        transform: handle
+      });
+    }
   }
 
   repackaged = (event, payload, emissions) => {

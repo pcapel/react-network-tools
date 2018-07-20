@@ -153,7 +153,7 @@ describe('Socket.On Unit Tests', () => {
   });
 });
 
-describe('Socket.Emit Unit Tests', () => {
+describe('Socket.Emit basic unit tests', () => {
   it('fires event with payload for onMount', () => {
     const {emit} = simpleMockSocket;
     const onMounts = [{event: 'on-load-event', payload: 'a happy little string'}];
@@ -192,7 +192,9 @@ describe('Socket.Emit Unit Tests', () => {
     rerender(<Socket.Emit socket={simpleMockSocket} onUpdates={onUpdates} />);
     expect(emit).toBeCalledWith('on-update-event', 'a happy little string');
   });
+});
 
+describe('Socket.Emit as a wrapper unit tests', () => {
   it('wraps a component', () => {
     const { container } = render(
       <Socket.Emit renders={TestDummy} />
@@ -346,10 +348,138 @@ describe('Socket.Emit Unit Tests', () => {
         <TestDummy />
       </Socket.Emit>
     );
-    //const div = container.querySelector('#test-wrapper');
-    // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
     expect(emit).not.toBeCalled();
     Simulate.mouseEnter(container.firstChild);
     expect(emit).toBeCalled();
   });
+});
+
+describe('Socket.Emit special case DOM event handling', () => {
+  describe('Event prop is a single function', () => {
+    it('generates a payload from a target event', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      let payloadSpyReturn;
+      const payloadSpy = jest.fn((e) => {payloadSpyReturn = e.target.id});
+      const {container} = render(
+        <Socket.Emit event={event} onClick={payloadSpy}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      expect(payloadSpy).not.toBeCalled();
+      Simulate.click(container.firstChild);
+      expect(payloadSpy).toBeCalled();
+      expect(payloadSpyReturn).toBe('test-wrapper');
+    });
+
+    it('fires standard payload for passed event', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      const payloadSpy = jest.fn();
+      const {container} = render(
+        <Socket.Emit event={event} payload={{data: 'test'}}
+          onClick={payloadSpy}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      Simulate.click(container.firstChild);
+      expect(emit.mock.calls[0][1]).toEqual({data: 'test'});
+    });
+
+    it('fires event and payload prop, and event with transform payload', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      const transform = (e) => e.target.id;
+      const {container} = render(
+        <Socket.Emit event={event} payload='test-payload'
+          onClick={transform}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      Simulate.click(container.firstChild);
+      expect(emit.mock.calls[0]).toEqual([event, 'test-payload']);
+      expect(emit.mock.calls[1]).toEqual([event, 'test-wrapper']);
+    });
+  });
+
+  describe('Event prop is an array', () => {
+    it('generates a payload from a target event', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      // a liiiiittle hacky, but it gets the job done until jest releases a windows
+      // compatible version that implements toHaveReturnedValue(<value>)
+      let payloadSpyReturn;
+      const payloadSpy = jest.fn((e) => {payloadSpyReturn = e.target.id});
+      const {container} = render(
+        <Socket.Emit event={event} onClick={[event, payloadSpy]}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      expect(payloadSpy).not.toBeCalled();
+      Simulate.click(container.firstChild);
+      expect(payloadSpy).toBeCalled();
+      expect(payloadSpyReturn).toBe('test-wrapper');
+    });
+
+    it('emits event payload with a different event when specified ', () => {
+      const {emit} = simpleMockSocket;
+      const mainEvent = 'click-payload-check';
+      const domEvent = 'click-alternate-event'
+      const testTransform = (e) => e.target.id;
+      const {container} = render(
+        <Socket.Emit event={mainEvent}
+          onClick={[domEvent, testTransform]}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      Simulate.click(container.firstChild);
+      expect(emit.mock.calls[0]).toEqual([mainEvent, {}]);
+      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
+    });
+  });
+
+  describe('Event prop is an object', () => {
+    it('generates a payload from a target event', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      // a liiiiittle hacky, but it gets the job done until jest releases a windows
+      // compatible version that implements toHaveReturnedValue(<value>)
+      let payloadSpyReturn;
+      const payloadSpy = jest.fn((e) => {payloadSpyReturn = e.target.id});
+      const {container} = render(
+        <Socket.Emit event={event}
+          onClick={{event: event, use: payloadSpy}}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      expect(payloadSpy).not.toBeCalled();
+      Simulate.click(container.firstChild);
+      expect(payloadSpy).toBeCalled();
+      expect(payloadSpyReturn).toBe('test-wrapper');
+    });
+
+    it('emits event payload with a different event when specified ', () => {
+      const {emit} = simpleMockSocket;
+      const mainEvent = 'click-payload-check';
+      const domEvent = 'click-alternate-event'
+      const testTransform = (e) => e.target.id;
+      const {container} = render(
+        <Socket.Emit event={mainEvent}
+          onClick={{event: domEvent, use: testTransform}}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      Simulate.click(container.firstChild);
+      expect(emit.mock.calls[0]).toEqual([mainEvent, {}]);
+      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
+    });
+  });
+
 });
