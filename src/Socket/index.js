@@ -1,6 +1,12 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import _ from 'lodash';
-import { hasUndefined, WrapWithProps } from '..';
+
+import {
+  hasUndefined,
+  WrapWithProps,
+  createHandler,
+  pickEvents
+} from '..';
 
 class On extends Component {
   constructor(props) {
@@ -33,7 +39,7 @@ class On extends Component {
       renders,
       dataProp,
       call,
-      handles,
+      handles, // can handles register multiple funcitons against a single event?
       ...passThroughProps
     } = this.props;
     if (this.is.handler || this.is.register) {
@@ -103,7 +109,8 @@ class Emit extends Component {
   }
 
   componentDidMount() {
-    const { renders, domEvent, event, payload, onMount } = this.props;
+    const { renders, event, payload, onMount } = this.props;
+    const domEvent = pickEvents(this.props)[0];
     if (!_.isEqual(onMount, [])) {
       this.fires(onMount)
     }
@@ -134,7 +141,6 @@ class Emit extends Component {
     const {
       renders,
       event,
-      domEvent,
       payload,
       socket,
       onUpdates,
@@ -144,6 +150,7 @@ class Emit extends Component {
       ...passThroughProps
     } = this.props;
     const Wrapped = renders;
+    const domEvent = pickEvents(this.props)[0];
     if (!renders && _.isUndefined(children)) {
       return null;
     }
@@ -156,29 +163,21 @@ class Emit extends Component {
             if (_.isUndefined(childFn)) {
               childFn = _.noop;
             }
-            const eventPackage = this.repackaged(event, payload, emissions);
-            return React.cloneElement(child, this.createEvent(domEvent, eventPackage, childFn))
+            const eventCalls = [
+              {func: this.fires, args: [this.repackaged(event, payload, emissions)]},
+              {func: childFn, event: true}
+            ]
+            return React.cloneElement(child, createHandler(domEvent, eventCalls))
           })
         }
         </React.Fragment>
       );
     }
-    const eventPackage = this.repackaged(event, payload, emissions);
+    const eventCalls = [{func: this.fires, args: [this.repackaged(event, payload, emissions)]}];
+    const newProps = Object.assign(passThroughProps, createHandler(domEvent, eventCalls));
     return (
-      <Wrapped {...this.createEvent(domEvent, eventPackage)} {...passThroughProps} />
+      <Wrapped {...newProps} />
     );
-  }
-
-  createEvent = (eventName, fires, childFn=_.noop) => {
-    if (_.isUndefined(eventName)) {
-      return {};
-    }
-    return {
-      [eventName]: (e) => {
-        childFn(e);
-        this.fires(fires)
-      }
-    };
   }
 
   repackaged = (event, payload, emissions) => {

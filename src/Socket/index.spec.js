@@ -205,7 +205,7 @@ describe('Socket.Emit Unit Tests', () => {
     const {container} = render(
       <Socket.Emit socket={simpleMockSocket}
         renders={TestDummy}
-        domEvent='onClick'
+        onClick
         event='button-press-event' />
     );
     expect(emit).not.toBeCalled();
@@ -216,9 +216,9 @@ describe('Socket.Emit Unit Tests', () => {
   it('fires exactly 1 emit with each onClick of wrapped component', () => {
     const {emit} = simpleMockSocket;
     const {container} = render(
-      <Socket.Emit socket={simpleMockSocket}
+      <Socket.Emit onClick
+        socket={simpleMockSocket}
         renders={TestDummy}
-        domEvent='onClick'
         event='button-press-event' />
     );
     expect(emit).not.toBeCalled();
@@ -236,9 +236,9 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-third-event', payload: {}}
     ];
     const {container} = render(
-      <Socket.Emit socket={simpleMockSocket}
+      <Socket.Emit onClick
+        socket={simpleMockSocket}
         renders={TestDummy}
-        domEvent='onClick'
         emissions={emissions} />
     );
     expect(emit).not.toBeCalled();
@@ -254,10 +254,9 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-third-event', payload: {}}
     ];
     const {container} = render(
-      <Socket.Emit
+      <Socket.Emit onClick
         socket={simpleMockSocket}
         renders={TestDummy}
-        domEvent='onClick'
         event='say-hello'
         emissions={emissions} />
     );
@@ -274,10 +273,9 @@ describe('Socket.Emit Unit Tests', () => {
       {event: 'clicked-third-event', payload: {}}
     ];
     const {container} = render(
-      <Socket.Emit
+      <Socket.Emit onClick
         socket={simpleMockSocket}
         renders={TestDummy}
-        domEvent='onClick'
         event='say-hello'
         emissions={emissions} />
     );
@@ -296,22 +294,25 @@ describe('Socket.Emit Unit Tests', () => {
     expect(container.querySelector('#props-length').textContent).toBe('3')
   });
 
-  it('wraps children and fires a domEvent for them', () => {
+  it('wraps children and fires an event for them', () => {
     const {emit} = simpleMockSocket;
     const {container} = render(
-      <Socket.Emit socket={simpleMockSocket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit onClick
+        socket={simpleMockSocket}
+        event='hello-work'>
         <TestDummy />
       </Socket.Emit>);
-      expect(emit.mock.calls.length).toBe(0);
+      expect(emit).not.toBeCalled();
       Simulate.click(container.firstChild);
-      expect(emit.mock.calls.length).toBe(1);
+      expect(emit).toBeCalled();
   });
 
   it('does not override the child handler for the event', () => {
     const {emit} = simpleMockSocket;
     const spy = jest.fn();
     const {container} = render(
-      <Socket.Emit socket={simpleMockSocket} domEvent='onClick' event='hello-work'>
+      <Socket.Emit event='hello-work' onClick
+        socket={simpleMockSocket}>
         <TestDummy onClick={spy} />
       </Socket.Emit>);
       expect(spy).not.toBeCalled();
@@ -322,27 +323,30 @@ describe('Socket.Emit Unit Tests', () => {
   it('does not swallow a click event', () => {
     const {emit} = simpleMockSocket;
     const spy = jest.fn();
-    const BigWrapper = ({children}) => (<div onClick={spy}>{children}</div>);
+    const bigSpy = jest.fn();
+    const BigWrapper = ({children}) => (<div onClick={bigSpy}>{children}</div>);
     const {container} = render(
       <BigWrapper>
-        <Socket.Emit socket={simpleMockSocket} domEvent='onClick' event='hello-work'>
+        <Socket.Emit event='hello-work' onClick
+          socket={simpleMockSocket}>
           <TestDummy onClick={spy} />
         </Socket.Emit>
       </BigWrapper>
     );
-      expect(spy).not.toBeCalled();
+      expect(bigSpy).not.toBeCalled();
       Simulate.click(container.firstChild);
-      expect(spy).toBeCalled();
+      expect(bigSpy).toBeCalled();
   });
 
   it('handles mouse enter', () => {
     const {emit} = simpleMockSocket;
     const {container} = render(
-      <Socket.Emit socket={simpleMockSocket} domEvent='onMouseEnter' event='mouse-entered'>
+      <Socket.Emit event='mouse-entered' onMouseEnter
+        socket={simpleMockSocket}>
         <TestDummy />
       </Socket.Emit>
     );
-    const div = container.querySelector('#test-wrapper');
+    //const div = container.querySelector('#test-wrapper');
     // fireEvent(div, new MouseEvent('mouseenter', {bubbles: true, cancelable: true}))
     expect(emit).not.toBeCalled();
     Simulate.mouseEnter(container.firstChild);
