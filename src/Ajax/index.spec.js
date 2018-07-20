@@ -65,10 +65,12 @@ describe('Ajax unittests', () => {
       .mockResolvedValueOnce({data: 'performs axios get on componentDidMount'})
       .mockResolvedValueOnce({data: 'performs axios get on componentDidMount'});
     render(<Ajax receiver={TestDummy} url={testPath}
-            defaultData='Loading...' callback={_.noop} />);
+            defaultData='Loading...' callback={_.noop} />
+        );
     expect(axios.get.mock.calls.length).toBe(1);
     render(<Ajax receiver={TestDummy} url={testPath}
-            defaultData='Loading...' callback={_.noop} showLoading />);
+            defaultData='Loading...' callback={_.noop} />
+        );
     expect(axios.get.mock.calls.length).toBe(2);
   });
 
@@ -108,7 +110,7 @@ describe('Ajax unittests', () => {
     });
   });
 
-  it('passes all unknown props to receiver', () => {
+  fit('passes all unknown props to receiver', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
     const recevierProps = {1: '', 2: '', 3: '', 4: ''};
     let { container } = render(<Ajax receiver={TestDummy} url={testPath}

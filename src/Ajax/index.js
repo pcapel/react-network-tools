@@ -68,7 +68,6 @@ class AjaxWrapper extends Component {
       target,
       path,
       endpoints,
-      showLoading,
       params,
       loader,
       ...passThroughProps
@@ -77,7 +76,6 @@ class AjaxWrapper extends Component {
     const Render = React.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
     return (
       <Render ajaxData={ this.state }
-        isLoading={this.state.isLoading}
         { ...passThroughProps } />
     );
   }
