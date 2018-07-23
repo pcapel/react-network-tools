@@ -13,6 +13,7 @@
     "build": "cross-env NODE_ENV=production babel --plugins transform-es2015-modules-commonjs src -d dist"
   },
   "devDependencies": {
+    "axios-mock-adapter": "^1.15.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.5",

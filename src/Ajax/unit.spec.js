@@ -3,8 +3,8 @@ import axios from 'axios';
 import _ from 'lodash';
 import { render, cleanup, wait, prettyDOM } from 'react-testing-library';
 
-import { Ajax } from '.';
-import { withContext, urlWithParams, reactEvents } from '..';
+import {Ajax} from './index';
+import {withContext, urlWithParams, reactEvents} from '../utils';
 
 class TestDummy extends Component {
   render() {
@@ -12,7 +12,8 @@ class TestDummy extends Component {
       <div id='test-wrapper'>
         <span id='props-data'>{ this.props.ajaxData.responseData }</span>
         <span id='props-length'>{ Object.keys(this.props).length }</span>
-      </div>);
+      </div>
+    );
   }
 }
 
@@ -74,26 +75,26 @@ describe('Ajax unittests', () => {
     expect(axios.get.mock.calls.length).toBe(2);
   });
 
-  it('cancels a call when unmounted', () => {
-    axios.get.mockResolvedValueOnce({data: 'cancels a call when unmounted'});
-    let { unmount } = render(<Ajax receiver={TestDummy} url={testPath}
+  it('calls the cancel token when unmounted', () => {
+    axios.get.mockResolvedValue({});
+    const {unmount, container} = render(<Ajax receiver={TestDummy} url={testPath}
                               defaultData='Loading...' callback={_.noop} />);
     return wait(() => {
       unmount();
-      expect(canceller.cancel.mock.calls.length).toBe(1);
+      expect(canceller.cancel).toBeCalled();
     });
   });
 
   it('calls to a url passed in as a string', () => {
     axios.get.mockResolvedValueOnce({data: 'calls to a url passed in'});
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' callback={_.noop} />);
     expect(axios.get.mock.calls[0][0]).toEqual(urlWithParams('https://localhost/', {}));
   });
 
   it('calls a url if the props update to a different value', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
-    let { rerender } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {rerender} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' hold />);
     expect(axios.get.mock.calls.length).toBe(0);
     rerender(<Ajax receiver={TestDummy} url={testPath2}
@@ -103,7 +104,7 @@ describe('Ajax unittests', () => {
 
   it('passes the result of a call to its child', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' callback={_.noop} />);
     return wait(() => {
       expect(container.querySelector('#props-data').textContent).toBe('some data');
@@ -113,7 +114,7 @@ describe('Ajax unittests', () => {
   it('passes all unknown props to receiver', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
     const recevierProps = {1: '', 2: '', 3: '', 4: ''};
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' callback={_.noop}
                                 { ...recevierProps } />);
     return wait(() => {
@@ -125,7 +126,7 @@ describe('Ajax unittests', () => {
   it('calls the supplied callback', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
     const callback = jest.fn();
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' callback={callback} />);
     return wait(() => {
       expect(callback.mock.calls.length).toBe(1);
@@ -135,10 +136,10 @@ describe('Ajax unittests', () => {
   it('supplies the callback with data as param', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
     const callback = jest.fn();
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' callback={callback} />);
     return wait(() => {
-      const { responseData, isLoading, isError, url } = callback.mock.calls[0][0];
+      const {responseData, isLoading, isError, url} = callback.mock.calls[0][0];
       expect(responseData).toEqual('some data');
       expect(isLoading).toBe(false);
       expect(isError).toBe(false);
@@ -147,14 +148,14 @@ describe('Ajax unittests', () => {
 
   it('holds a call if hold is true', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
-    let { container } = render(<Ajax receiver={TestDummy} url={testPath}
+    const {container} = render(<Ajax receiver={TestDummy} url={testPath}
                                 defaultData='Loading...' hold />);
     expect(axios.get.mock.calls.length).toBe(0);
   });
 
   it('calls axios get on mount with target and path instead of url', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
-    let { container } = render(
+    const {container} = render(
       <MockApp>
         <CtxAjax receiver={TestDummy} target='localhost' path=''
           defaultData='Loading...' />
@@ -164,7 +165,7 @@ describe('Ajax unittests', () => {
 
   it('calls to the correct endpoint with target and path', () => {
     axios.get.mockResolvedValueOnce({data: 'some data'});
-    let { container } = render(
+    const {container} = render(
       <MockApp>
         <CtxAjax receiver={TestDummy} target='localhost' path='home'
           defaultData='Loading...' />
@@ -174,7 +175,7 @@ describe('Ajax unittests', () => {
 
   it('calls an endpoint if the path prop updates to a different value', () => {
     axios.get.mockResolvedValue({data: 'some data'});
-    let { rerender } = render(
+    const {rerender} = render(
       <MockApp>
         <CtxAjax receiver={TestDummy} target='localhost' path='home'
           defaultData='Loading...' hold={true} />

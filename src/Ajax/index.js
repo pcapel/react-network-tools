@@ -96,8 +96,8 @@ class AjaxWrapper extends Component {
           // the component un-mounted and the data isn't required in the view.
           return null;
         } else {
-          // the error is legit, let the view components render accordingly 
-          this.receive({responseData: data, isLoading: false, isError: true});
+          // the error is legit, let the view components render accordingly
+          this.receive({responseData: thrown, isLoading: false, isError: true});
         }
       })
   }

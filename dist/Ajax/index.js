@@ -149,8 +149,8 @@ var _initialiseProps = function _initialiseProps() {
         // the component un-mounted and the data isn't required in the view.
         return null;
       } else {
-        // the error is legit, let the view components render accordingly 
-        _this2.receive({ responseData: data, isLoading: false, isError: true });
+        // the error is legit, let the view components render accordingly
+        _this2.receive({ responseData: thrown, isLoading: false, isError: true });
       }
     });
   };
