@@ -74,3 +74,82 @@ describe('WrapWithProps', function () {
     expect(getByText('Hello').id).toBe('test');
   });
 });
+
+describe('pickEvents', function () {
+  it('picks out keys object {k | k in reactEvents} as array of strings', function () {
+    var hasKeys = {
+      onClick: true,
+      onMouseDown: true
+    };
+    expect((0, _index.pickEvents)(hasKeys)).toEqual(['onClick', 'onMouseDown']);
+  });
+
+  it('does not pick unknown keys', function () {
+    var hasKeys = {
+      onClick: true,
+      onMouseDow: true,
+      smoobly: true
+    };
+    expect((0, _index.pickEvents)(hasKeys)).toEqual(['onClick']);
+  });
+});
+
+describe('createHandler', function () {
+  it('creates an object handler for a valid reactEvent', function () {
+    var spy = jest.fn();
+    var testCalls = [{ func: spy, args: [] }];
+    var result = (0, _index.createHandler)('onClick', testCalls);
+    expect(spy).not.toHaveBeenCalled();
+    result.onClick();
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('calls the calls[i].func with calls[i].args', function () {
+    var spy = jest.fn();
+    var testCalls = [{ func: spy, args: ['hello', 'world'] }];
+    var result = (0, _index.createHandler)('onClick', testCalls);
+    expect(spy).not.toHaveBeenCalled();
+    result.onClick();
+    expect(spy).toHaveBeenCalledWith('hello', 'world');
+  });
+
+  it('allows calls[i].args to be undefined', function () {
+    var spy = jest.fn();
+    var testCalls = [{ func: spy }];
+    var result = (0, _index.createHandler)('onClick', testCalls);
+    expect(spy).not.toHaveBeenCalled();
+    result.onClick();
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('subs event object for first arg if calls[i].event = true, no args', function () {
+    var spy = jest.fn();
+    var testCalls = [{ func: spy, event: true }];
+    var mockEvent = { hello: 'world' };
+    var result = (0, _index.createHandler)('onClick', testCalls);
+    expect(spy).not.toHaveBeenCalled();
+    result.onClick(mockEvent);
+    expect(spy).toHaveBeenCalledWith(mockEvent);
+  });
+
+  it('subs event object for first arg if calls[i].event = true, multiple args', function () {
+    var spy = jest.fn();
+    var testCalls = [{ func: spy, event: true, args: ['hello', 'world'] }];
+    var mockEvent = { hello: 'world' };
+    var result = (0, _index.createHandler)('onClick', testCalls);
+    expect(spy).not.toHaveBeenCalled();
+    result.onClick(mockEvent);
+    expect(spy).toHaveBeenCalledWith(mockEvent, 'hello', 'world');
+  });
+
+  it('logs an error for invalid react events', function () {
+    console.error = jest.fn();
+    var expectMessage = 'Unable to create valid handler using invalidEvent';
+    (0, _index.createHandler)('invalidEvent');
+    expect(console.error).toBeCalledWith(expectMessage);
+  });
+
+  it('returns an empty object for eventName === undefined', function () {
+    expect((0, _index.createHandler)(undefined)).toEqual({});
+  });
+});

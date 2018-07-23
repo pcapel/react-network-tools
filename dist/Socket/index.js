@@ -148,16 +148,38 @@ var Emit = function (_Component2) {
       });
     };
 
-    _this2.createEvent = function (eventName, fires) {
-      var childFn = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : _lodash2.default.noop;
-
-      if (_lodash2.default.isUndefined(eventName)) {
-        return {};
-      }
-      return _defineProperty({}, eventName, function (e) {
-        childFn(e);
-        _this2.fires(fires);
+    _this2.mapHandlers = function (domEvent, emissions, firer) {
+      var updatedEmissions = Object.assign([], emissions);
+      _this2.domEventHandlers.map(function (handler) {
+        var addPayload = handler.transform(domEvent);
+        var socketEvent = handler.eventName;
+        updatedEmissions.push({ event: socketEvent, payload: addPayload });
       });
+      firer(updatedEmissions);
+    };
+
+    _this2.attachDOMEventHandle = function (handle) {
+      if (handle === undefined) {
+        return null;
+      } else if (Array.isArray(handle)) {
+        if (handle.length !== 2) {
+          console.error('Array args to DOM events must be 2 values');
+        }
+        _this2.domEventHandlers.push({
+          eventName: handle[0],
+          transform: handle[1]
+        });
+      } else if (handle.hasOwnProperty('event') && handle.hasOwnProperty('use')) {
+        _this2.domEventHandlers.push({
+          eventName: handle.event,
+          transform: handle.use
+        });
+      } else if (typeof handle === 'function') {
+        _this2.domEventHandlers.push({
+          eventName: _this2.props.event,
+          transform: handle
+        });
+      }
     };
 
     _this2.repackaged = function (event, payload, emissions) {
@@ -175,6 +197,7 @@ var Emit = function (_Component2) {
       previousEmission: [],
       hasFired: false
     };
+    _this2.domEventHandlers = [];
     return _this2;
   }
 
@@ -183,14 +206,14 @@ var Emit = function (_Component2) {
     value: function componentDidMount() {
       var _props2 = this.props,
           renders = _props2.renders,
-          domEvent = _props2.domEvent,
           event = _props2.event,
           payload = _props2.payload,
           onMount = _props2.onMount;
 
+      var domEventName = (0, _2.pickEvents)(this.props)[0];
       if (!_lodash2.default.isEqual(onMount, [])) {
         this.fires(onMount);
-      } else if (!_lodash2.default.isUndefined(event) && !renders && _lodash2.default.isUndefined(domEvent)) {
+      } else if (!_lodash2.default.isUndefined(event) && !renders && _lodash2.default.isUndefined(domEventName)) {
         this.fire(event, payload);
       }
     }
@@ -222,16 +245,19 @@ var Emit = function (_Component2) {
       var _props3 = this.props,
           renders = _props3.renders,
           event = _props3.event,
-          domEvent = _props3.domEvent,
           payload = _props3.payload,
           socket = _props3.socket,
           onUpdates = _props3.onUpdates,
           onMount = _props3.onMount,
           emissions = _props3.emissions,
           children = _props3.children,
-          passThroughProps = _objectWithoutProperties(_props3, ['renders', 'event', 'domEvent', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'children']);
+          passThroughProps = _objectWithoutProperties(_props3, ['renders', 'event', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'children']);
 
       var Wrapped = renders;
+      var domEventName = (0, _2.pickEvents)(this.props)[0];
+      // is one of boolean, object, array,
+      var domEventHandle = this.props[domEventName];
+      this.attachDOMEventHandle(domEventHandle);
       if (!renders && _lodash2.default.isUndefined(children)) {
         return null;
       } else if (!_lodash2.default.isUndefined(children)) {
@@ -239,17 +265,20 @@ var Emit = function (_Component2) {
           _react2.default.Fragment,
           null,
           _react2.default.Children.map(children, function (child) {
-            var childFn = child.props[domEvent];
+            var childFn = child.props[domEventName];
             if (_lodash2.default.isUndefined(childFn)) {
               childFn = _lodash2.default.noop;
             }
-            var eventPackage = _this4.repackaged(event, payload, emissions);
-            return _react2.default.cloneElement(child, _this4.createEvent(domEvent, eventPackage, childFn));
+            var firesEmissions = _this4.repackaged(event, payload, emissions);
+            var eventCalls = [{ func: _this4.mapHandlers, event: !!domEventName, args: [firesEmissions, _this4.fires] }, { func: childFn, event: true }];
+            return _react2.default.cloneElement(child, (0, _2.createHandler)(domEventName, eventCalls));
           })
         );
       }
-      var eventPackage = this.repackaged(event, payload, emissions);
-      return _react2.default.createElement(Wrapped, Object.assign({}, this.createEvent(domEvent, eventPackage), passThroughProps));
+      var firesEmissions = this.repackaged(event, payload, emissions);
+      var eventCalls = [{ func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires] }];
+      var newProps = Object.assign(passThroughProps, (0, _2.createHandler)(domEventName, eventCalls));
+      return _react2.default.createElement(Wrapped, newProps);
     }
   }]);
 
@@ -263,6 +292,9 @@ Emit.defaultProps = {
 };
 
 var Socket = exports.Socket = {};
+
+On.displayName = 'Socket.On';
+Emit.displayName = 'Socket.Emit';
 
 Socket.On = On;
 Socket.Emit = Emit;

@@ -31,6 +31,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
+// TODO: add displayName management...
 var withLoader = function withLoader(Component, Loader) {
   return function (props) {
     var ajaxData = props.ajaxData,
@@ -107,16 +108,18 @@ var AjaxWrapper = function (_Component) {
           target = _props.target,
           path = _props.path,
           endpoints = _props.endpoints,
-          showLoading = _props.showLoading,
           params = _props.params,
           loader = _props.loader,
-          passThroughProps = _objectWithoutProperties(_props, ['receiver', 'children', 'url', 'defaultData', 'callback', 'hold', 'target', 'path', 'endpoints', 'showLoading', 'params', 'loader']);
+          passThroughProps = _objectWithoutProperties(_props, ['receiver', 'children', 'url', 'defaultData', 'callback', 'hold', 'target', 'path', 'endpoints', 'params', 'loader']);
 
-      var Receiver = receiver;
-      var Render = _react2.default.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
-      return _react2.default.createElement(Render, Object.assign({ ajaxData: this.state,
-        isLoading: this.state.isLoading
-      }, passThroughProps));
+      if (_react2.default.Children.count(children) === 0) {
+        var Receiver = receiver;
+        var Render = _react2.default.isValidElement(loader) ? withLoader(Receiver, loader) : Receiver;
+        return _react2.default.createElement(Render, Object.assign({ ajaxData: this.state
+        }, passThroughProps));
+      } else {
+        return children;
+      }
     }
   }]);
 
@@ -141,8 +144,14 @@ var _initialiseProps = function _initialiseProps() {
       return response.data;
     }).then(function (data) {
       return _this2.receive({ responseData: data, isLoading: false, isError: false });
-    }).catch(function (data) {
-      return _this2.receive({ responseData: data, isLoading: false, isError: true });
+    }).catch(function (thrown) {
+      if (_axios2.default.isCancel(thrown)) {
+        // the component un-mounted and the data isn't required in the view.
+        return null;
+      } else {
+        // the error is legit, let the view components render accordingly 
+        _this2.receive({ responseData: data, isLoading: false, isError: true });
+      }
     });
   };
 

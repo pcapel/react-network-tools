@@ -126,7 +126,7 @@ describe('Ajax unittests', function () {
       defaultData: 'Loading...', callback: _lodash2.default.noop }));
     expect(_axios2.default.get.mock.calls.length).toBe(1);
     (0, _reactTestingLibrary.render)(_react2.default.createElement(_2.Ajax, { receiver: TestDummy, url: testPath,
-      defaultData: 'Loading...', callback: _lodash2.default.noop, showLoading: true }));
+      defaultData: 'Loading...', callback: _lodash2.default.noop }));
     expect(_axios2.default.get.mock.calls.length).toBe(2);
   });
 
@@ -295,5 +295,31 @@ describe('Ajax unittests', function () {
         container = _render12.container;
 
     expect(_axios2.default.get.mock.calls[0][0].toString()).toEqual('https://localhost/?one=1&two=2');
+  });
+
+  it('renders children', function () {
+    // hold the call so you don't have to mock the resolved value
+    var _render13 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+      _2.Ajax,
+      { url: testPath, hold: true },
+      _react2.default.createElement('div', { 'data-testid': 'hello' })
+    )),
+        container = _render13.container;
+
+    expect(container.querySelector('[data-testid]')).not.toBeNull();
+  });
+
+  it('fires a request on the desired event bubbling from child', function () {
+    _axios2.default.get.mockResolvedValueOnce({ data: 'calls to a url passed in' });
+
+    var _render14 = (0, _reactTestingLibrary.render)(_react2.default.createElement(
+      _2.Ajax,
+      { url: testPath,
+        onClick: true },
+      _react2.default.createElement('div', { 'data-testid': 'hello' })
+    )),
+        container = _render14.container;
+
+    expect(_axios2.default.get).toBeCalled();
   });
 });
