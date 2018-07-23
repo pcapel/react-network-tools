@@ -1,6 +1,6 @@
 # react-network-tools
 Declarative and composable data providers using socket.io and axios for react applications.
-:hankey::fire::hankey::fire:
+:hankey:  :fire:  :hankey:  :fire:
 
 ## Why
 Because I wanted to use these in more than one project, and copy-pasta is a

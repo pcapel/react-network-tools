@@ -91,7 +91,15 @@ class AjaxWrapper extends Component {
       cancelToken: this.source.token
     }).then(response => response.data)
       .then(data => this.receive({responseData: data, isLoading: false, isError: false}))
-      .catch(data => this.receive({responseData: data, isLoading: false, isError: true}))
+      .catch(thrown => {
+        if (axios.isCancel(thrown)) {
+          // the component un-mounted and the data isn't required in the view.
+          return null;
+        } else {
+          // the error is legit, let the view components render accordingly 
+          this.receive({responseData: data, isLoading: false, isError: true});
+        }
+      })
   }
 
   buildURL = (props) => {
