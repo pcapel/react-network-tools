@@ -77,6 +77,13 @@ describe('Socket.On Unit Tests', () => {
     expect(simpleMockSocket.on).toBeCalledWith('hello-world', call)
   });
 
+  it('removes a listener from an event', () => {
+    let call = new simpleSpy();
+    const {unmount} = render(<Socket.On socket={simpleMockSocket} event='hello-world' call={call} />);
+    unmount();
+    expect(simpleMockSocket.removeListener).toBeCalledWith('hello-world', call)
+  });
+
   it('registers an event with a handler using context', () => {
     let call = new simpleSpy();
     render(

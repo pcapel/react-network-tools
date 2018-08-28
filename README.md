@@ -178,6 +178,9 @@ Coming Soon...
 ---
 
 # ToDo
+- Does Ajax need to have a prop for data access, eg <Ajax access='data' /> would
+  allow me to control how the response is accessed in the receive function.  This
+  would help clear up the whole issue with forgetting to add that to tests...
 - Add modular wrappers and smaller components, but ensure that they display the
   correct names for debugging
 - Change `domEvent` prop to just be the event name for react as a boolean
