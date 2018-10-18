@@ -37,7 +37,7 @@ var On = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (On.__proto__ || Object.getPrototypeOf(On)).call(this, props));
 
-    _this._apply = function (method) {
+    _this._apply = function (method, outsideEvent) {
       var _this$props = _this.props,
           socket = _this$props.socket,
           event = _this$props.event,
@@ -45,7 +45,9 @@ var On = function (_Component) {
           handles = _this$props.handles,
           dataProp = _this$props.dataProp;
 
-      if (!_lodash2.default.isUndefined(event) && !_lodash2.default.isUndefined(call)) {
+      if (!_lodash2.default.isUndefined(outsideEvent)) {
+        socket[method](outsideEvent, call);
+      } else if (!_lodash2.default.isUndefined(event) && !_lodash2.default.isUndefined(call)) {
         socket[method](event, call);
       } else if (!_lodash2.default.isUndefined(handles)) {
         handles.map(function (handle) {
@@ -73,6 +75,16 @@ var On = function (_Component) {
   }
 
   _createClass(On, [{
+    key: 'shouldComponentUpdate',
+    value: function shouldComponentUpdate(nextProps, nextState) {
+      if (this.props.event !== nextProps.event) {
+        this._apply('removeListener');
+        // optionally pass in the event to register
+        this._apply('on', nextProps.event);
+      }
+      return true;
+    }
+  }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
       this._apply('on');
