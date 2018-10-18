@@ -105,6 +105,21 @@ describe('Socket.On Unit Tests', () => {
     });
   });
 
+  it('updates a event when new event is sent in', () => {
+    let call = new simpleSpy();
+    const {rerender} = render(
+      <MockApp>
+        <CtxSocket.On event='hello-world' call={call} />
+      </MockApp>
+    );
+    rerender(
+      <MockApp>
+        <CtxSocket.On event='hello-bob' call={call} />
+      </MockApp>
+    );
+    expect(simpleMockSocket.on).toBeCalledWith('hello-bob', call);
+  });
+
   it('passes event data to child as dataProp', () => {
     // the MockServer/MockSocket setup might work in a standalone function
     const url = 'ws://localhost:8081';

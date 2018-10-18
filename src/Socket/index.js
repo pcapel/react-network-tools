@@ -22,6 +22,15 @@ class On extends Component {
     }
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.event !== nextProps.event) {
+      this._apply('removeListener');
+      // optionally pass in the event to register
+      this._apply('on', nextProps.event);
+    }
+    return true;
+  }
+
   componentDidMount() {
     this._apply('on');
   }
@@ -61,9 +70,11 @@ class On extends Component {
     }
   }
 
-  _apply = (method) => {
+  _apply = (method, outsideEvent) => {
     const { socket, event, call, handles, dataProp } = this.props;
-    if ( ! _.isUndefined(event) && ! _.isUndefined(call) ) {
+    if ( ! _.isUndefined(outsideEvent) ) {
+      socket[method](outsideEvent, call);
+    } else if ( ! _.isUndefined(event) && ! _.isUndefined(call) ) {
       socket[method](event, call);
     } else if ( ! _.isUndefined(handles) ) {
       handles.map(handle => socket[method](handle.event, handle.use));
