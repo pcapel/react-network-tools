@@ -249,10 +249,28 @@ Emit.defaultProps = {
   renders: false
 }
 
+class RequestResponse extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+
+    }
+  }
+
+  render() {
+    const {} = this.props;
+    return (
+      null
+    );
+  }
+}
+
 export const Socket = {};
 
 On.displayName = 'Socket.On';
 Emit.displayName = 'Socket.Emit';
+RequestResponse.displayName = 'Socket.RequestResponse';
 
 Socket.On = On;
 Socket.Emit = Emit;
+Socket.RequestResponse = RequestResponse;

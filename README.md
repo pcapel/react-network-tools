@@ -18,6 +18,7 @@ I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
  - [Socket](#socket)
    - [Socket.Emit](#socketemit)
    - [Socket.On](#socketon)
+   - [Socket.RequesetResponse](#socketrequestresponse)
  - [Ajax](#ajax)
  - [ToDo](#todo)
 
@@ -125,6 +126,23 @@ at the same time, without colliding the removal of listeners.
  {event: String, use: Function}
  ```
   Where each `handles.event` will be registered with the `handles.use`
+
+
+### Common Patterns
+Coming Soon...
+
+---
+
+## Socket.RequestResponse
+The `RequestResponse` object is probably going to seem out of place, but I bet
+it grows on you.  It's a wrapper around logically related `emit` and `on` events
+that allows you to treat a socket event more like a traditional HTTP Request/Response
+cycle.
+Why support this?  Because I'm going to use it is the simplest answer.  The
+slightly longer answer includes, "Because I don't see how it's a terrible idea yet."
+
+
+### Props
 
 
 ### Common Patterns

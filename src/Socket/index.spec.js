@@ -68,6 +68,10 @@ describe('Socket smoke tests', () => {
   it('renders Socket.Emit with wrapped without crashing', () => {
     render(<Socket.Emit renders={TestDummy} />);
   });
+
+  it('renders Socket.RequestResponse without crashing', () => {
+    render(<Socket.RequestResponse />)
+  });
 });
 
 describe('Socket.On Unit Tests', () => {
@@ -503,5 +507,23 @@ describe('Socket.Emit special case DOM event handling', () => {
       expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
     });
   });
+});
 
+
+describe('Socket.RequestResponse basic unit tests', () => {
+  it('does thing 1', () => {
+
+  });
+
+  it('does thing 2', () => {
+
+  });
+
+  it('does thing 3', () => {
+
+  });
+
+  it('does thing 4', () => {
+
+  });
 });
