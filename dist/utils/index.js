@@ -78,7 +78,7 @@ var hasUndefined = exports.hasUndefined = function hasUndefined(select, object) 
   select.map(function (key) {
     return _lodash2.default.merge(use, _defineProperty({}, key, object[key]));
   });
-  return Object.values(use).every(function (item) {
+  return _lodash2.default.values(use).every(function (item) {
     return !(item === undefined);
   });
 };

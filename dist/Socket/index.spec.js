@@ -127,6 +127,10 @@ describe('Socket smoke tests', function () {
   it('renders Socket.Emit with wrapped without crashing', function () {
     (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.Emit, { renders: TestDummy }));
   });
+
+  it('renders Socket.RequestResponse without crashing', function () {
+    (0, _reactTestingLibrary.render)(_react2.default.createElement(_index.Socket.RequestResponse, null));
+  });
 });
 
 describe('Socket.On Unit Tests', function () {
@@ -650,4 +654,14 @@ describe('Socket.Emit special case DOM event handling', function () {
       expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
     });
   });
+});
+
+describe('Socket.RequestResponse basic unit tests', function () {
+  it('does thing 1', function () {});
+
+  it('does thing 2', function () {});
+
+  it('does thing 3', function () {});
+
+  it('does thing 4', function () {});
 });

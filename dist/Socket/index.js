@@ -19,6 +19,8 @@ var _2 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
@@ -303,10 +305,36 @@ Emit.defaultProps = {
   renders: false
 };
 
+var RequestResponse = function (_Component3) {
+  _inherits(RequestResponse, _Component3);
+
+  function RequestResponse(props) {
+    _classCallCheck(this, RequestResponse);
+
+    var _this5 = _possibleConstructorReturn(this, (RequestResponse.__proto__ || Object.getPrototypeOf(RequestResponse)).call(this, props));
+
+    _this5.state = {};
+    return _this5;
+  }
+
+  _createClass(RequestResponse, [{
+    key: 'render',
+    value: function render() {
+      _objectDestructuringEmpty(this.props);
+
+      return null;
+    }
+  }]);
+
+  return RequestResponse;
+}(_react.Component);
+
 var Socket = exports.Socket = {};
 
 On.displayName = 'Socket.On';
 Emit.displayName = 'Socket.Emit';
+RequestResponse.displayName = 'Socket.RequestResponse';
 
 Socket.On = On;
 Socket.Emit = Emit;
+Socket.RequestResponse = RequestResponse;

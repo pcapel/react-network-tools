@@ -57,7 +57,7 @@ export const urlWithParams = (URLString, paramsObject) => {
 export const hasUndefined = (select, object) => {
   let use = {};
   select.map(key => _.merge(use, {[key]: object[key]}))
-  return Object.values(use).every(item => !(item === undefined));
+  return _.values(use).every(item => !(item === undefined));
 }
 
 export const reactEvents = [
