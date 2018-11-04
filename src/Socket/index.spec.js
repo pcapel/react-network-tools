@@ -68,10 +68,6 @@ describe('Socket smoke tests', () => {
   it('renders Socket.Emit with wrapped without crashing', () => {
     render(<Socket.Emit renders={TestDummy} />);
   });
-
-  it('renders Socket.RequestResponse without crashing', () => {
-    render(<Socket.RequestResponse />)
-  });
 });
 
 describe('Socket.On Unit Tests', () => {
@@ -182,22 +178,30 @@ describe('Socket.On Unit Tests', () => {
 describe('Socket.Emit basic unit tests', () => {
   it('fires event with payload for onMount', () => {
     const {emit} = simpleMockSocket;
-    const onMounts = [{event: 'on-load-event', payload: 'a happy little string'}];
+    const onMounts = [{
+      event: 'on-load-event',
+      payload: 'a happy little string',
+      acknowledge: _.noop,
+    }];
     render(<Socket.Emit socket={simpleMockSocket} onMount={onMounts} />);
-    expect(emit).toBeCalledWith('on-load-event', 'a happy little string');
+    expect(emit).toBeCalledWith('on-load-event', 'a happy little string', _.noop);
   });
 
   it('fires only the supplied event on mount with empty payload', () => {
     const {emit} = simpleMockSocket;
-    render(<Socket.Emit socket={simpleMockSocket} event='on-load-event' />);
-    expect(emit).toBeCalledWith('on-load-event', {});
+    render(
+      <Socket.Emit socket={simpleMockSocket}
+      event='on-load-event'
+      acknowledge={_.noop} />
+    );
+    expect(emit).toBeCalledWith('on-load-event', {}, _.noop);
   });
 
   it('fires the supplied event on mount with payload', () => {
     const {emit} = simpleMockSocket;
     const load = {data: 'pretty sneaky sis'}
     render(<Socket.Emit socket={simpleMockSocket} event='on-load-event' payload={load} />);
-    expect(emit).toBeCalledWith('on-load-event', load);
+    expect(emit).toBeCalledWith('on-load-event', load, _.noop);
   });
 
   it('doesn\'t fire onUpdate when first mounting', () => {
@@ -216,7 +220,26 @@ describe('Socket.Emit basic unit tests', () => {
       <Socket.Emit socket={simpleMockSocket} onUpdates={onUpdates} />
     );
     rerender(<Socket.Emit socket={simpleMockSocket} onUpdates={onUpdates} />);
-    expect(emit).toBeCalledWith('on-update-event', 'a happy little string');
+    expect(emit).toBeCalledWith('on-update-event', 'a happy little string', _.noop);
+  });
+
+  it('calls the acknowledge function with server data', () => {
+    // the MockServer/MockSocket setup might work in a standalone function
+    const url = 'ws://localhost:8081';
+    const MockServer = new Server(url);
+    MockServer.on('test-this-event', (load, ack) => {
+      ack('some neato testing');
+    });
+    const MockSocket = new SocketIO(url);
+    // https://github.com/thoov/mock-socket/issues/176
+    jest.runOnlyPendingTimers();
+    MockSocket.removeListener = jest.fn();
+    const spy = jest.fn();
+    const {container} = render(
+      <Socket.Emit socket={MockSocket} event='test-this-event' acknowledge={spy} />
+    );
+    expect(spy).toBeCalledWith('some neato testing');
+    MockServer.close();
   });
 });
 
@@ -426,8 +449,25 @@ describe('Socket.Emit special case DOM event handling', () => {
         </Socket.Emit>
       );
       Simulate.click(container.firstChild);
-      expect(emit.mock.calls[0]).toEqual([event, 'test-payload']);
-      expect(emit.mock.calls[1]).toEqual([event, 'test-wrapper']);
+      expect(emit.mock.calls[0]).toEqual([event, 'test-payload', _.noop]);
+      expect(emit.mock.calls[1]).toEqual([event, 'test-wrapper', _.noop]);
+    });
+
+    it('fires event, payload, and acknowledge prop, event with transform payload', () => {
+      const {emit} = simpleMockSocket;
+      const event = 'click-payload-check';
+      const transform = (e) => e.target.id;
+      const ackWith = (data) => {/*do nothing!*/};
+      const {container} = render(
+        <Socket.Emit event={event} payload='test-payload'
+          onClick={transform} acknowledge={ackWith}
+          socket={simpleMockSocket}>
+          <TestDummy />
+        </Socket.Emit>
+      );
+      Simulate.click(container.firstChild);
+      expect(emit.mock.calls[0]).toEqual([event, 'test-payload', ackWith]);
+      expect(emit.mock.calls[1]).toEqual([event, 'test-wrapper', ackWith]);
     });
   });
 
@@ -464,8 +504,8 @@ describe('Socket.Emit special case DOM event handling', () => {
         </Socket.Emit>
       );
       Simulate.click(container.firstChild);
-      expect(emit.mock.calls[0]).toEqual([mainEvent, {}]);
-      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
+      expect(emit.mock.calls[0]).toEqual([mainEvent, {}, _.noop]);
+      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper', _.noop]);
     });
   });
 
@@ -503,8 +543,8 @@ describe('Socket.Emit special case DOM event handling', () => {
         </Socket.Emit>
       );
       Simulate.click(container.firstChild);
-      expect(emit.mock.calls[0]).toEqual([mainEvent, {}]);
-      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper']);
+      expect(emit.mock.calls[0]).toEqual([mainEvent, {}, _.noop]);
+      expect(emit.mock.calls[1]).toEqual([domEvent, 'test-wrapper', _.noop]);
     });
   });
 });

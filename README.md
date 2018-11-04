@@ -18,7 +18,6 @@ I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
  - [Socket](#socket)
    - [Socket.Emit](#socketemit)
    - [Socket.On](#socketon)
-   - [Socket.RequesetResponse](#socketrequestresponse)
  - [Ajax](#ajax)
  - [ToDo](#todo)
 

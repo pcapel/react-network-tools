@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import _ from 'lodash';
 
 import {
@@ -88,6 +89,34 @@ class On extends Component {
   }
 }
 
+const handler = PropTypes.shape({
+  event: PropTypes.string,
+  use: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.object
+  ])
+});
+
+const renderable = PropTypes.oneOfType([
+  PropTypes.node,
+  PropTypes.element,
+  PropTypes.func
+]);
+
+On.propTypes = {
+  renders: renderable,
+  children: PropTypes.element,
+  socket: PropTypes.object,
+  event: PropTypes.string,
+  dataProp: PropTypes.string,
+  defaultData: PropTypes.any,
+  call: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.object
+  ]),
+  handles: PropTypes.arrayOf(handler)
+}
+
 class Emit extends Component {
   constructor(props) {
     super(props);
@@ -98,10 +127,10 @@ class Emit extends Component {
     this.domEventHandlers = [];
   }
 
-  fire = (event, payload) => {
+  fire = (event, payload, ackFunc) => {
     const {socket} = this.props;
     payload = _.isUndefined(payload) ? {} : payload;
-    socket.emit(event, payload);
+    socket.emit(event, payload, ackFunc);
     this.setState({
       previousEmission: [{event: event, payload: payload}],
       hasFired: true
@@ -111,7 +140,7 @@ class Emit extends Component {
   fires = (emissions) => {
     const {socket} = this.props;
     emissions.map((emission) => {
-      socket.emit(emission.event, emission.payload);
+      socket.emit(emission.event, emission.payload, emission.acknowledge);
       return null;
     });
     this.setState({
@@ -121,28 +150,29 @@ class Emit extends Component {
   }
 
   mapHandlers = (domEvent, emissions, firer) => {
-    const updatedEmissions = Object.assign([], emissions);
+    const updatedEmissions = Object.assign([], this.ackEnsure(emissions));
     this.domEventHandlers.map((handler) => {
       const addPayload = handler.transform(domEvent);
       const socketEvent = handler.eventName;
-      updatedEmissions.push({event: socketEvent, payload: addPayload})
+      const acknowledge = handler.acknowledge || this.props.acknowledge;
+      updatedEmissions.push({event: socketEvent, payload: addPayload, acknowledge})
     });
     firer(updatedEmissions);
   }
 
   componentDidMount() {
-    const {renders, event, payload, onMount} = this.props;
+    const {renders, event, payload, acknowledge, onMount} = this.props;
     const domEventName = pickEvents(this.props)[0];
     if (!_.isEqual(onMount, [])) {
       this.fires(onMount)
     }
     else if (!_.isUndefined(event) && !renders && _.isUndefined(domEventName)) {
-      this.fire(event, payload);
+      this.fire(event, payload, acknowledge);
     }
   }
 
   componentDidUpdate(prevProps) {
-    const {onUpdates} = this.props;
+    const {onUpdates, acknowledge} = this.props;
     onUpdates.map((emission, i) => {
       let prevIndex = prevProps.onUpdates.indexOf(emission);
       if (prevIndex > -1
@@ -153,7 +183,12 @@ class Emit extends Component {
             return null;
           }
       else {
-        this.fire(emission.event, emission.payload);
+        this.fire(
+          emission.event,
+          emission.payload,
+          // user supplies no func, use default _.noop
+          emission.acknowledge || acknowledge
+        );
         return null;
       }
     });
@@ -168,6 +203,7 @@ class Emit extends Component {
       onUpdates,
       onMount,
       emissions,
+      acknowledge,
       children,
       ...passThroughProps
     } = this.props;
@@ -188,7 +224,7 @@ class Emit extends Component {
             if (_.isUndefined(childFn)) {
               childFn = _.noop;
             }
-            const firesEmissions = this.repackaged(event, payload, emissions);
+            const firesEmissions = this.repackaged(event, payload, acknowledge, emissions);
             const eventCalls = [
               {func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires]},
               {func: childFn, event: true}
@@ -199,8 +235,12 @@ class Emit extends Component {
         </React.Fragment>
       );
     }
-    const firesEmissions = this.repackaged(event, payload, emissions);
-    const eventCalls = [{func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires]}];
+    const firesEmissions = this.repackaged(event, payload, acknowledge, emissions);
+    const eventCalls = [{
+      func: this.mapHandlers,
+      event: !!domEventName,
+      args: [firesEmissions, this.fires]
+    }];
     const newProps = Object.assign(passThroughProps, createHandler(domEventName, eventCalls));
     return (
       <Wrapped {...newProps} />
@@ -212,7 +252,9 @@ class Emit extends Component {
       return null;
     } else if (Array.isArray(handle)) {
       if (handle.length !== 2) {
-        console.error('Array args to DOM events must be 2 values')
+        console.error('Array args to DOM events must be 2 values.  ' +
+                      'Using first 2, other values ignored.'
+                      )
       }
       this.domEventHandlers.push({
         eventName: handle[0],
@@ -231,22 +273,57 @@ class Emit extends Component {
     }
   }
 
-  repackaged = (event, payload, emissions) => {
+  ackEnsure = (emissions) => {
+    const {acknowledge} = this.props;
+    emissions.forEach((emission) => {
+      if (_.isUndefined(emission.acknowledge)) {
+        emission.acknowledge = acknowledge;
+      }
+    });
+    return emissions;
+  }
+
+  repackaged = (event, payload, acknowledge, emissions) => {
     const isEvent = !_.isUndefined(event);
     payload = _.isUndefined(payload) ? {} : payload;
     emissions = _.isUndefined(emissions) ? [] : emissions;
+    // ensure that the emissions has a function value for acknowledge
+    this.ackEnsure(emissions);
     let vals = emissions;
     if (isEvent) {
-      vals = [{event: event, payload: payload}].concat(emissions);
+      vals = [{event, payload, acknowledge}].concat(emissions);
     }
     return vals;
   }
 }
 
+const emissionType = PropTypes.shape({
+  event: PropTypes.string,
+  payload: PropTypes.any,
+  ack: PropTypes.func
+});
+
 Emit.defaultProps = {
   onMount: [],
   onUpdates: [],
+  acknowledge: _.noop,
+  // TODO: using a boolean is causing the proptypes issue, remove?
   renders: false
+}
+
+Emit.propTypes = {
+  renders: renderable,
+  event: PropTypes.string,
+  /**
+  * payload can be any serializable type
+  */
+  payload: PropTypes.any,
+  socket: PropTypes.object,
+  onUpdates: PropTypes.arrayOf(emissionType),
+  onMount: PropTypes.arrayOf(emissionType),
+  emissions: PropTypes.arrayOf(emissionType),
+  acknowledge: PropTypes.func,
+  children: PropTypes.element,
 }
 
 export const Socket = {};
