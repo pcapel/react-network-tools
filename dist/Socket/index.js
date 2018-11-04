@@ -11,6 +11,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -18,8 +22,6 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var _2 = require('..');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _objectDestructuringEmpty(obj) { if (obj == null) throw new TypeError("Cannot destructure undefined"); }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -130,6 +132,24 @@ var On = function (_Component) {
   return On;
 }(_react.Component);
 
+var handler = _propTypes2.default.shape({
+  event: _propTypes2.default.string,
+  use: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.object])
+});
+
+var renderable = _propTypes2.default.oneOfType([_propTypes2.default.node, _propTypes2.default.element, _propTypes2.default.func]);
+
+On.propTypes = {
+  renders: renderable,
+  children: _propTypes2.default.element,
+  socket: _propTypes2.default.object,
+  event: _propTypes2.default.string,
+  dataProp: _propTypes2.default.string,
+  defaultData: _propTypes2.default.any,
+  call: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.object]),
+  handles: _propTypes2.default.arrayOf(handler)
+};
+
 var Emit = function (_Component2) {
   _inherits(Emit, _Component2);
 
@@ -138,11 +158,11 @@ var Emit = function (_Component2) {
 
     var _this2 = _possibleConstructorReturn(this, (Emit.__proto__ || Object.getPrototypeOf(Emit)).call(this, props));
 
-    _this2.fire = function (event, payload) {
+    _this2.fire = function (event, payload, ackFunc) {
       var socket = _this2.props.socket;
 
       payload = _lodash2.default.isUndefined(payload) ? {} : payload;
-      socket.emit(event, payload);
+      socket.emit(event, payload, ackFunc);
       _this2.setState({
         previousEmission: [{ event: event, payload: payload }],
         hasFired: true
@@ -153,7 +173,7 @@ var Emit = function (_Component2) {
       var socket = _this2.props.socket;
 
       emissions.map(function (emission) {
-        socket.emit(emission.event, emission.payload);
+        socket.emit(emission.event, emission.payload, emission.acknowledge);
         return null;
       });
       _this2.setState({
@@ -163,11 +183,12 @@ var Emit = function (_Component2) {
     };
 
     _this2.mapHandlers = function (domEvent, emissions, firer) {
-      var updatedEmissions = Object.assign([], emissions);
+      var updatedEmissions = Object.assign([], _this2.ackEnsure(emissions));
       _this2.domEventHandlers.map(function (handler) {
         var addPayload = handler.transform(domEvent);
         var socketEvent = handler.eventName;
-        updatedEmissions.push({ event: socketEvent, payload: addPayload });
+        var acknowledge = handler.acknowledge || _this2.props.acknowledge;
+        updatedEmissions.push({ event: socketEvent, payload: addPayload, acknowledge: acknowledge });
       });
       firer(updatedEmissions);
     };
@@ -177,7 +198,7 @@ var Emit = function (_Component2) {
         return null;
       } else if (Array.isArray(handle)) {
         if (handle.length !== 2) {
-          console.error('Array args to DOM events must be 2 values');
+          console.error('Array args to DOM events must be 2 values.  ' + 'Using first 2, other values ignored.');
         }
         _this2.domEventHandlers.push({
           eventName: handle[0],
@@ -196,13 +217,26 @@ var Emit = function (_Component2) {
       }
     };
 
-    _this2.repackaged = function (event, payload, emissions) {
+    _this2.ackEnsure = function (emissions) {
+      var acknowledge = _this2.props.acknowledge;
+
+      emissions.forEach(function (emission) {
+        if (_lodash2.default.isUndefined(emission.acknowledge)) {
+          emission.acknowledge = acknowledge;
+        }
+      });
+      return emissions;
+    };
+
+    _this2.repackaged = function (event, payload, acknowledge, emissions) {
       var isEvent = !_lodash2.default.isUndefined(event);
       payload = _lodash2.default.isUndefined(payload) ? {} : payload;
       emissions = _lodash2.default.isUndefined(emissions) ? [] : emissions;
+      // ensure that the emissions has a function value for acknowledge
+      _this2.ackEnsure(emissions);
       var vals = emissions;
       if (isEvent) {
-        vals = [{ event: event, payload: payload }].concat(emissions);
+        vals = [{ event: event, payload: payload, acknowledge: acknowledge }].concat(emissions);
       }
       return vals;
     };
@@ -222,13 +256,14 @@ var Emit = function (_Component2) {
           renders = _props2.renders,
           event = _props2.event,
           payload = _props2.payload,
+          acknowledge = _props2.acknowledge,
           onMount = _props2.onMount;
 
       var domEventName = (0, _2.pickEvents)(this.props)[0];
       if (!_lodash2.default.isEqual(onMount, [])) {
         this.fires(onMount);
       } else if (!_lodash2.default.isUndefined(event) && !renders && _lodash2.default.isUndefined(domEventName)) {
-        this.fire(event, payload);
+        this.fire(event, payload, acknowledge);
       }
     }
   }, {
@@ -236,7 +271,9 @@ var Emit = function (_Component2) {
     value: function componentDidUpdate(prevProps) {
       var _this3 = this;
 
-      var onUpdates = this.props.onUpdates;
+      var _props3 = this.props,
+          onUpdates = _props3.onUpdates,
+          acknowledge = _props3.acknowledge;
 
       onUpdates.map(function (emission, i) {
         var prevIndex = prevProps.onUpdates.indexOf(emission);
@@ -246,7 +283,9 @@ var Emit = function (_Component2) {
         && _lodash2.default.isEqual(emission, prevProps.onUpdates[prevIndex]) && _this3.state.hasFired) {
           return null;
         } else {
-          _this3.fire(emission.event, emission.payload);
+          _this3.fire(emission.event, emission.payload,
+          // user supplies no func, use default _.noop
+          emission.acknowledge || acknowledge);
           return null;
         }
       });
@@ -256,16 +295,17 @@ var Emit = function (_Component2) {
     value: function render() {
       var _this4 = this;
 
-      var _props3 = this.props,
-          renders = _props3.renders,
-          event = _props3.event,
-          payload = _props3.payload,
-          socket = _props3.socket,
-          onUpdates = _props3.onUpdates,
-          onMount = _props3.onMount,
-          emissions = _props3.emissions,
-          children = _props3.children,
-          passThroughProps = _objectWithoutProperties(_props3, ['renders', 'event', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'children']);
+      var _props4 = this.props,
+          renders = _props4.renders,
+          event = _props4.event,
+          payload = _props4.payload,
+          socket = _props4.socket,
+          onUpdates = _props4.onUpdates,
+          onMount = _props4.onMount,
+          emissions = _props4.emissions,
+          acknowledge = _props4.acknowledge,
+          children = _props4.children,
+          passThroughProps = _objectWithoutProperties(_props4, ['renders', 'event', 'payload', 'socket', 'onUpdates', 'onMount', 'emissions', 'acknowledge', 'children']);
 
       var Wrapped = renders;
       var domEventName = (0, _2.pickEvents)(this.props)[0];
@@ -283,14 +323,18 @@ var Emit = function (_Component2) {
             if (_lodash2.default.isUndefined(childFn)) {
               childFn = _lodash2.default.noop;
             }
-            var firesEmissions = _this4.repackaged(event, payload, emissions);
+            var firesEmissions = _this4.repackaged(event, payload, acknowledge, emissions);
             var eventCalls = [{ func: _this4.mapHandlers, event: !!domEventName, args: [firesEmissions, _this4.fires] }, { func: childFn, event: true }];
             return _react2.default.cloneElement(child, (0, _2.createHandler)(domEventName, eventCalls));
           })
         );
       }
-      var firesEmissions = this.repackaged(event, payload, emissions);
-      var eventCalls = [{ func: this.mapHandlers, event: !!domEventName, args: [firesEmissions, this.fires] }];
+      var firesEmissions = this.repackaged(event, payload, acknowledge, emissions);
+      var eventCalls = [{
+        func: this.mapHandlers,
+        event: !!domEventName,
+        args: [firesEmissions, this.fires]
+      }];
       var newProps = Object.assign(passThroughProps, (0, _2.createHandler)(domEventName, eventCalls));
       return _react2.default.createElement(Wrapped, newProps);
     }
@@ -299,42 +343,39 @@ var Emit = function (_Component2) {
   return Emit;
 }(_react.Component);
 
+var emissionType = _propTypes2.default.shape({
+  event: _propTypes2.default.string,
+  payload: _propTypes2.default.any,
+  ack: _propTypes2.default.func
+});
+
 Emit.defaultProps = {
   onMount: [],
   onUpdates: [],
+  acknowledge: _lodash2.default.noop,
+  // TODO: using a boolean is causing the proptypes issue, remove?
   renders: false
 };
 
-var RequestResponse = function (_Component3) {
-  _inherits(RequestResponse, _Component3);
-
-  function RequestResponse(props) {
-    _classCallCheck(this, RequestResponse);
-
-    var _this5 = _possibleConstructorReturn(this, (RequestResponse.__proto__ || Object.getPrototypeOf(RequestResponse)).call(this, props));
-
-    _this5.state = {};
-    return _this5;
-  }
-
-  _createClass(RequestResponse, [{
-    key: 'render',
-    value: function render() {
-      _objectDestructuringEmpty(this.props);
-
-      return null;
-    }
-  }]);
-
-  return RequestResponse;
-}(_react.Component);
+Emit.propTypes = {
+  renders: renderable,
+  event: _propTypes2.default.string,
+  /**
+  * payload can be any serializable type
+  */
+  payload: _propTypes2.default.any,
+  socket: _propTypes2.default.object,
+  onUpdates: _propTypes2.default.arrayOf(emissionType),
+  onMount: _propTypes2.default.arrayOf(emissionType),
+  emissions: _propTypes2.default.arrayOf(emissionType),
+  acknowledge: _propTypes2.default.func,
+  children: _propTypes2.default.element
+};
 
 var Socket = exports.Socket = {};
 
 On.displayName = 'Socket.On';
 Emit.displayName = 'Socket.Emit';
-RequestResponse.displayName = 'Socket.RequestResponse';
 
 Socket.On = On;
 Socket.Emit = Emit;
-Socket.RequestResponse = RequestResponse;
