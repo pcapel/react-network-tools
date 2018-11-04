@@ -508,22 +508,3 @@ describe('Socket.Emit special case DOM event handling', () => {
     });
   });
 });
-
-
-describe('Socket.RequestResponse basic unit tests', () => {
-  it('does thing 1', () => {
-
-  });
-
-  it('does thing 2', () => {
-
-  });
-
-  it('does thing 3', () => {
-
-  });
-
-  it('does thing 4', () => {
-
-  });
-});
