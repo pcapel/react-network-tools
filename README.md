@@ -9,7 +9,13 @@ great way to have out of sync stuffs.  This is the easy road for the time being.
 ## Install
 I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
 
-`yarn add https://github.rackspace.com/phil9824/react-network-tools.git`
+`yarn add https://github.com/pcapel/react-network-tools.git`
+
+will work to install from this repository, but once I have published to npm
+
+`yarn add react-network-tools`
+
+should do the trick!
 
  Should get you up and running.  Unless you can't clone from my repo, or something
  that I don't know about.  In which case.... fork it I guess?
@@ -22,17 +28,19 @@ I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
  - [ToDo](#todo)
 
 ## Use
-The API consists of two Higher Order Components (HOCs), `<Socket />` and `<Ajax />`.
+The API consists of two primary components, `<Socket />` and `<Ajax />`.
 The implementation of `<Socket />` is agnostic of the framework used, so native
 sockets, or socket.io, or anything that implements `on`, `emit`, and
 `removeAllListeners` should work.  I designed it for socket.io client, so if it
-can be fixed in a way that works better for you, just send a pull request.
+can be fixed in a way that works better for you, just send a pull request.  The
+`emit` method of the socket implementation should accept a function for the server
+acknowledgement.
 
 The `<Ajax />` component was a little trickier.  I have built it out around the
-axios library, since it provides a cross-platform way of cancelling requests.
+[axios](https://github.com/axios/axios) library, since it provides a cross-platform way of cancelling requests.
 This is a requirement for ending long running requests when the component
-unmounts, since the callbacks all call `setState`.  Again, if there's a better
-way, I'd be happy to accept a pull request.
+unmounts, since the callbacks all call `setState`.  I had been using axios in the
+project that spawned this, so it seemed like an easy choice.
 
 Both components offer two ways of handling the initiation of network events.
 There is the mechanism of calling when the component renders, and passing in a
@@ -40,7 +48,7 @@ component to receive the resulting data (or simply emit an event, for the socket
 As well as wrapping children and attaching an event handler to them.  I've found
 that both cases have their uses, but the second is probably more likely.
 
-Additionally, the convenience methods `withEndpointContext` and `withSocketContext`
+Additionally, the convenience [HOC](https://reactjs.org/docs/higher-order-components.html)s `withEndpointContext` and `withSocketContext`
 are provided to wrap the component in the application context that provides the
 value.  I wrap the components in their own module and export the wrapped component
 to isolate the logic, but you do you.  The only argument required is the context
@@ -50,16 +58,16 @@ You basically redefine them in your application code base.  Your call.
 ---
 
 # Socket
-Socket contains two namespaced components, `Emit` and `On`.  These are exactly
+Socket contains two name-spaced components, `Emit` and `On`.  These are exactly
 what you think they are.
 
 
 ## Socket.Emit
 The `Emit` wrapper is the most complex out of all of the components this package
 provides, since it has some varied use cases.  The simplest, and most familiar,
-is when it is used like any other AJAX request.  That is, you emit to the socket
-and expect a return value.  This would normally be the callback function
-provided, but I haven't really thought this through enough to implement that yet.
+is when it is used like any other asynchronous request.  That is, you emit to the
+socket and expect a return value.  This would normally be the callback function
+provided, which in this case can be passed with the `acknowledge` prop.
 
 The next is a simple notification event.  Something on the client happened, and
 we want to notify the server so that it can do something with the information.
@@ -200,9 +208,6 @@ Coming Soon...
   would help clear up the whole issue with forgetting to add that to tests...
 - Add modular wrappers and smaller components, but ensure that they display the
   correct names for debugging
-- Change `domEvent` prop to just be the event name for react as a boolean
 - Add better handling of errors and edge cases
-- Add PropTypes, which will make the next one easier
-- Add docgen so I don't have to maintain this mess
 - Verify the spec for WebSockets, and make sure the component matches
 - How do you test code that is written with this library?
