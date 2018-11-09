@@ -1,11 +1,15 @@
-# react-network-tools
 [![Build Status](https://travis-ci.com/pcapel/react-network-tools.png?branch=master)](https://travis-ci.com/pcapel/react-network-tools)
+
+# react-network-tools
+
 Declarative and composable data providers using socket.io and axios for react applications.
 :hankey:  :fire:  :hankey:  :fire:
 
 ## Why
 Because I wanted to use these in more than one project, and copy-pasta is a
-great way to have out of sync stuffs.  This is the easy road for the time being.
+great way to have out of sync stuffs.  Then I started to kinda like it, now I
+figure that sharing it would be a cool thing to do.  So here's my first open
+source project that might be worth anything.
 
 ## Install
 I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
@@ -18,8 +22,11 @@ will work to install from this repository, but once I have published to npm
 
 should do the trick!
 
- Should get you up and running.  Unless you can't clone from my repo, or something
- that I don't know about.  In which case.... fork it I guess?
+Should get you up and running.  Unless you can't clone from my repo, or something
+that I don't know about.  In which case.... fork it I guess?
+
+I'm currently trying to get Travis CI figured out.  If you notice anything off
+about the repo, let me know!
 
  ## Contents
  - [Socket](#socket)
@@ -113,6 +120,7 @@ at least **I** don't want to have to.  So the API provides ways around that.
 
 ### Common Patterns
 Coming Soon...
+I'll be filling in with some patterns from how I use this.
 
 ---
 
@@ -207,6 +215,8 @@ Coming Soon...
 - Does Ajax need to have a prop for data access, eg <Ajax access='data' /> would
   allow me to control how the response is accessed in the receive function.  This
   would help clear up the whole issue with forgetting to add that to tests...
+- Are AJAX libraries isomorphic enough to allow dependency injection without
+  headaches?
 - Add modular wrappers and smaller components, but ensure that they display the
   correct names for debugging
 - Add better handling of errors and edge cases
