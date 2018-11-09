@@ -1,4 +1,5 @@
 # react-network-tools
+[![Build Status](https://travis-ci.org/pcapel/react-network-tools.png?branch=master)](https://travis-ci.org/pcapel/react-network-tools)
 Declarative and composable data providers using socket.io and axios for react applications.
 :hankey:  :fire:  :hankey:  :fire:
 
