@@ -1,0 +1,8 @@
+deploy:
+  provider: npm
+  email: insert.available.name@gmail.com
+  api_key:
+    secure: Kb/YU+vptZSWZux3u6gwsKz7NdNLaj7E99hZrOIp5Ww1SzyymQIdPYiKcyQp61jolYO5/bExjsuSfNv3oRdMczran3jtfXhMWx5cUF598yqwGCyPlpTg0WuhaeBjN1+nJCrwsFoqxPGTQbr6y5K2b+d+EHgdT2kRc2DFDh9UkNgy9ZQJxGGWMj1RbHffczWJMmvlNzGM2EC2WNwa3Jq3gwRzJq+A6EtCDhdeLId20lFUh6beDtZGbIa98fZ9dD/+WyhgOvuGodqwtUyif9xZikpbGGx3Ae+QBWRyL8nu9CNg3p5TL8/OEe1JlWTMinZohV3jjlfIRNOVumeHT7mYKaHo5gQ2I4aeUjogMJVbK5h6Z+dg17NBKvBzcSexyOXfz5Z2rU8JmBAUNF73C/nh2HB0voOAyYOw5BWFehjx1HGylKQ6YOgz2dqM5NvgKO6LAXHO9gC+fWkmA0YdtVaS/+gNwqxzHChw4fxV395X1kFtR0x6W1BtupZ9rUuzeUp/vXhhOFD8rbwBqPC18l7OfsD6nSD8ZC+MY5yxTnIxTIUMXQxLzThpiA78WTwF2ZhxmKaCV7jolV49YJQ7ZhgV+jF3pjjvLybJk4ytj6mfEEaWPAqFCDhul7FjyokIZoGjXOlZ6DAY+P+QMtvOqczxQbu7uK/NHwjuS1kjst8J4Wc=
+  on:
+    tags: true
+    repo: pcapel/react-network-tools
