@@ -2,12 +2,12 @@
 
 # react-network-tools
 
-Declarative and composable data providers using socket.io and axios for react applications.
-:hankey:  :fire:  :hankey:  :fire:
+Declarative and composable data providers using socket.io and axios for react
+applications.
 
 ## Why
 Because I wanted to use these in more than one project, and copy-pasta is a
-great way to have out of sync stuffs.  Then I started to kinda like it, now I
+great way to have out of sync stuffs.  Then I started to kind of like it, now I
 figure that sharing it would be a cool thing to do.  So here's my first open
 source project that might be worth anything.
 
@@ -31,6 +31,9 @@ about the repo, let me know!
  ## Contents
  - [Socket](#socket)
    - [Socket.Emit](#socketemit)
+     - [Emit on render](#emitonrender)
+     - [Emit as button](#emitasbutton)
+     - [Emit on event](#emitonevent)
    - [Socket.On](#socketon)
  - [Ajax](#ajax)
  - [ToDo](#todo)
@@ -67,8 +70,40 @@ You basically redefine them in your application code base.  Your call.
 
 # Socket
 Socket contains two name-spaced components, `Emit` and `On`.  These are exactly
-what you think they are.
+what you think they are.  Because I designed it to not care about which
+implementation you're using, the component takes in a `socket` prop.  I like to
+create a socket instance in a module, then export it into the application root.
+From there I pass it as into a `Provider`.  I really dig on [contexts](https://reactjs.org/docs/context.html).
 
+You can create multiple sockets, and provide them however you like, but doing it
+like this lets you use the helper function `withSocketContext`.  My method is
+something like this:
+
+``` jsx
+// mysocket/index.js or wherever
+import React from 'react'
+import { withSocketContext } from 'react-network-tools'
+// create a context
+
+export const SocketContext = React.createContext()
+export const MyScocket = withSocketContext(SocketContext)
+
+// myapplication/index.js or wherever
+import { MyScocket, SocketContext } from './mysocket'
+
+// import or initialize socket as const socket
+
+export const App = () => {
+  <SocketContext.Provider value={socket}>
+    <ApplicationRoot />
+  </SocketContext.Provider>
+}
+```
+
+And that's that!  All of my examples will assume that the socket is provided via
+context like this.  If you don't want to use the context, then you will need to
+pass it to the socket component explicitly, or provide it via state-to-props if
+you keep in a `redux` store or similar.  Your call.
 
 ## Socket.Emit
 The `Emit` wrapper is the most complex out of all of the components this package
@@ -105,7 +140,7 @@ at least **I** don't want to have to.  So the API provides ways around that.
 - `children: <React.Children>` La di da
 - `<React DOM Event>: eg onClick` fires the emissions on the specified event.
   Alternatively, you can pass this as a prop with an object value that is one of:
-  ```javascript
+  ``` javascript
   // most verbose
   {
     event: 'some-different-event',
@@ -119,8 +154,151 @@ at least **I** don't want to have to.  So the API provides ways around that.
 
 
 ### Common Patterns
-Coming Soon...
-I'll be filling in with some patterns from how I use this.
+#### Emit on render
+Probably the simplest use case is to emit some event with the component renders.
+It's pretty straight forward, you just tell it what you want!
+
+``` jsx
+import React, { Fragment } from 'react'
+
+import { MySocket } from './where/you/put/it'
+
+export const SomeComponent = (props) => {
+  return (
+    <Fragment>
+      <MySocket.Emit event='hello-sockets' payload={props.somePayload} />
+    </Fragment>
+    )
+}
+```
+Now anywhere that `SomeComponent` is rendered you will fire 'hello-sockets' on
+the provided socket connection.  Pretty trivial example though.  What say we get
+a little fancier?
+
+``` jsx
+import React, { Component } from 'react'
+
+import { MySocket } from './where/you/put/it'
+
+class FancyPants extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      responses: []
+    }
+  }
+
+  handleResponse = (data) => {
+    const responses = Object.assign([], this.state.responses)
+    responses.push(data)
+    this.setState({responses})
+  }
+
+  render() {
+    const {
+      someProp,
+      propFunc
+    } = this.props
+    return (
+      <div>
+        <MySocket.Emit event={`${someProp}-special-event`}
+          payload={someFunc} acknowledge={this.handleResponse} />
+      {/* Some other stuff */}
+      </div>
+    )
+  }
+}
+```
+
+Ok, so let's break this down a bit.
+
+Acknowledge callbacks:
+A function passed to the `acknowledge` prop will be used to handle the data
+response from the server's acknowledge callback.  That means that this is only
+called if the server is setup to do so.
+
+Dynamic Events:
+Having your event names static is cool, but template literals are cooler.
+The event must exist on the back-end for this to work, but it's a really nice
+way to have things align.  Personally I wrote my backend to accept events from
+a single event point, but the responses are based on the payload content.  More
+on why in the `Socket.On` section.
+
+Function as payload:
+Sometimes you want to have a payload that is more dynamic as well.  Sometimes it
+is _so_ dynamic, that the component doesn't even know what it is!  Passing a in
+a function that returns the payload object makes it easier to separate the app's
+logic around generating the payload from the declaration of the event.  I've
+found this to be a nice thing.
+
+#### Emit as button
+One of the ways that I've really liked to use this is to emit on a button press.
+Since I've packaged this with all the DOM events that React components can....
+react to, you can just pass in the event as a boolean property.  Here's my
+component for `SocketButton`:
+
+``` jsx
+import React, { Component } from 'react'
+import _ from 'lodash'
+import { Button } from 'pick-a-library-lol' // this is not a real library...
+
+import { MySocket } from './where/you/put/it'
+
+export class SocketButton extends Component {
+  render() {
+    const {
+      event,
+      payload,
+      emissions,
+      children,
+      makePayload,
+      acknowledge,
+      ...passThrough
+    } = this.props
+    let sockProps, sendLoad
+    if (_.isFunction(payload)) {
+      sendLoad = payload()
+    } else {
+      sendLoad = payload
+    }
+    if (_.isUndefined(event)) {
+      sockProps = {emissions: emissions}
+    } else {
+      sockProps = {payload: sendLoad, event, acknowledge}
+    }
+    return (
+      <MySocket.Emit {...sockProps} onClick>
+        <Button {...passThrough} onClick={(e) => e.preventDefault()}>
+          {children}
+        </Button>
+      </MySocket.Emit>
+    )
+  }
+}
+```
+
+There's a lot of wrapping up of props that has to happen, but it works.
+
+#### Emit on event
+So that button example is pretty neat, but like I said, I have all the events
+that react will respond to in my utils.  That means that collecting usage metrics
+_should_ be a breeze.  I haven't tried it out yet in an actual application, but
+I've been trying to write solid tests around the concept.
+
+``` jsx
+import React from 'react'
+
+import { MySocket } from './where/you/put/it'
+import { MyOtherComponent } from './someplace'
+
+export const EvilSpyComponent = (props) => {
+  return <MySocket.Emit renders={MyOtherComponent} onMouseEnter {...props} />
+}
+```
+
+Assuming that your props has the required key/values (event/payload, or emissions)
+then you should see your server get hit on every `mouseenter` event.  Like I said
+though, I haven't quite implemented this myself yet....
 
 ---
 
