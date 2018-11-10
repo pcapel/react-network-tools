@@ -31,9 +31,9 @@ about the repo, let me know!
  ## Contents
  - [Socket](#socket)
    - [Socket.Emit](#socketemit)
-     - [Emit on render](#emitonrender)
-     - [Emit as button](#emitasbutton)
-     - [Emit on event](#emitonevent)
+     - [Emit on render](#emit-on-render)
+     - [Emit as button](#emit-as-button)
+     - [Emit on event](#emit-on-event)
    - [Socket.On](#socketon)
  - [Ajax](#ajax)
  - [ToDo](#todo)
