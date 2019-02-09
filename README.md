@@ -12,6 +12,8 @@ figure that sharing it would be a cool thing to do.  So here's my first open
 source project that might be worth anything.
 
 ## Install
+### This is not yet deployed to NPM, while I want to get that done soon, I'm not sure when that will happen.
+#### Probably soon though...
 I use yarn, so [the docs](https://yarnpkg.com/lang/en/docs/cli/add/) are clear:
 
 `yarn add https://github.com/pcapel/react-network-tools.git`
