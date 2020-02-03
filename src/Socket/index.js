@@ -74,7 +74,7 @@ class On extends Component {
   _apply = (method, outsideEvent) => {
     const { socket, event, call, handles, dataProp } = this.props;
     if ( ! _.isUndefined(outsideEvent) ) {
-      socket[method](outsideEvent, call);
+      socket[method](outsideEvent, call)
     } else if ( ! _.isUndefined(event) && ! _.isUndefined(call) ) {
       socket[method](event, call);
     } else if ( ! _.isUndefined(handles) ) {
