@@ -1,3 +1,3 @@
-export * from './Ajax';
-export * from './Socket';
-export * from './utils';
+export * from './Ajax'
+export * from './Socket'
+export * from './utils'
