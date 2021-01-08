@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.com/pcapel/react-network-tools.png?branch=master)](https://travis-ci.com/pcapel/react-network-tools)
+# Archived and Deprecated
+This was a great learning experience, but I don't anticipate anyone to ever actually use it. Not with things like Apollo out there.
 
 # react-network-tools
 
